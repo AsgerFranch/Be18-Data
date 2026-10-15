@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Be18 Graphic Studio 2.1 — Arkitektonisk Energibalance & Sankey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-workspace: #f2efe9;
+      --bg-sidebar: #fbfaf7;
+      --bg-planche: #fcfbf9;
+      --bg-muted: #f1eee8;
+      --bg-button: #eae6de;
+      --bg-button-hover: #dfd9ce;
+      --border-light: #e4e0d7;
+      --border-input: #d5d0c5;
+      --text-main: #1f1e1b;
+      --text-secondary: #5c5952;
+      --text-muted: #858078;
+      --accent: #c85a32;
+      --accent-soft: #f5e6df;
+      --badge-ok-bg: #dbece1;
+      --badge-ok-text: #21633b;
+      --badge-warn-bg: #f9dedc;
+      --badge-warn-text: #962925;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-workspace);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ================= SIDEBAR ================= */
+    .sidebar {
+      width: 315px;
+      min-width: 315px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-light);
+      height: 100vh;
+      overflow-y: auto;
+      padding: 18px 16px 36px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #d5d0c5;
+      border-radius: 3px;
+    }
+
+    .brand-kicker {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      text-transform: uppercase;
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-block {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .section-header {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .dropzone {
+      background-color: var(--bg-muted);
+      border: 1px dashed #c7c1b4;
+      border-radius: 5px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background-color: var(--accent-soft);
+    }
+
+    .dropzone-title {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-main);
+      margin-bottom: 3px;
+    }
+
+    .dropzone-sub {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      background-color: var(--bg-button);
+      border: 1px solid var(--border-input);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 7px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-align: center;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg-button-hover);
+    }
+
+    .btn-accent {
+      background-color: var(--accent);
+      border: 1px solid #b14b25;
+      color: #fff;
+    }
+    .btn-accent:hover {
+      background-color: #b14b25;
+    }
+
+    .info-pill {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--bg-muted);
+      padding: 6px 9px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .info-pill-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .info-pill-val {
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 11px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label span.val-badge {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      background-color: #ffffff;
+      border: 1px solid var(--border-input);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: #dedad0;
+      border-radius: 2px;
+      outline: none;
+      margin: 3px 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+      padding: 1px 0;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 13.5px;
+      height: 13.5px;
+      cursor: pointer;
+    }
+
+    /* ================= MAIN WORKSPACE ================= */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .topbar {
+      background-color: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-light);
+      padding: 12px 28px 14px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .topbar-nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tab-pill-bar {
+      display: inline-flex;
+      background-color: #ebe7df;
+      padding: 3.5px;
+      border-radius: 6px;
+      gap: 3px;
+      border: 1px solid #e0dbd1;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.02em;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background-color: #ffffff;
+      color: var(--text-main);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-export {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 6px 11px;
+      border-radius: 4px;
+      border: 1px solid var(--border-input);
+      background-color: #ffffff;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-export:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* KPI STRIP */
+    .kpi-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      align-items: flex-end;
+    }
+
+    .kpi-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .kpi-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .kpi-val-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-badge.ok {
+      background-color: var(--badge-ok-bg);
+      color: var(--badge-ok-text);
+    }
+
+    .kpi-badge.warn {
+      background-color: var(--badge-warn-bg);
+      color: var(--badge-warn-text);
+    }
+
+    .kpi-badge.neutral {
+      background-color: #e6e2d8;
+      color: #4f4c46;
+    }
+
+    /* ================= PLANCHE / CANVAS CARD ================= */
+    .workspace-scroll {
+      padding: 24px 28px 40px 28px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .planche-card {
+      background-color: var(--bg-planche);
+      border: 1px solid #e2ded6;
+      border-radius: 8px;
+      box-shadow: 0 8px 28px rgba(30, 28, 24, 0.05);
+      width: 100%;
+      max-width: 1220px;
+      padding: 30px 36px 26px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .planche-header {
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 12px;
+    }
+
+    .planche-kicker {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .planche-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .planche-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .svg-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .svg-container svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .planche-footer {
+      border-top: 1px solid var(--border-light);
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .legend-scale {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .swatch-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 6px;
+    }
+
+    .swatch-box {
+      width: 22px;
+      height: 9px;
+      border-radius: 1.5px;
+    }
+
+    /* Data Inspector Table */
+    .inspector-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .inspector-table th {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 9px 10px;
+      background-color: var(--bg-muted);
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-input);
+    }
+
+    .inspector-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-main);
+    }
+
+    .inspector-table tr:hover td {
+      background-color: #f6f4ef;
+    }
+
+    .mono-num {
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    /* Modal for Paste */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(25, 24, 21, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-box {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      width: 560px;
+      max-width: 92vw;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+    }
+    .modal-box textarea {
+      width: 100%;
+      height: 180px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 10px;
+      border: 1px solid var(--border-input);
+      border-radius: 4px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= VENSTRE SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand-kicker">ARKITEKTONISK ANALYSE // DS/EN ISO 13790 &amp; BR18</div>
+      <div class="brand-title">Be18 Graphic Studio 2.1</div>
+    </div>
+
+    <!-- 01 // DATA INPUT -->
+    <div class="section-block">
+      <div class="section-header">01 // DATA INPUT (.XML / .BE18 / PRESET)</div>
+      <input type="file" id="fileInput" accept=".xml,.be18,.txt,.csv,.json" style="display:none" />
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <div class="dropzone-title">Træk Be18-udtræk hertil</div>
+        <div class="dropzone-sub">Eller klik for at vælge fil<br>(f.eks. nøgletal.xml eller Be18 resultat.txt)</div>
+      </div>
+      <button class="btn-secondary" onclick="openPasteModal()">Indsæt rå tekst fra udklipsholder</button>
+
+      <div class="field-group" style="margin-top: 2px;">
+        <div class="field-label">Arkitektonisk Projekt-Preset</div>
+        <select id="presetSelect" onchange="loadPreset(this.value)">
+          <option value="scandi_cabin">01: Skovhytte / Træhus (145 m² — Passiv sol + PV)</option>
+          <option value="clt_housing" selected>02: CLT Etagebolig, Østerbro (980 m² — Solfanger + PV)</option>
+          <option value="kulturhus">03: Hybrid Bibliotek &amp; Kulturhus (2.200 m² — Erhverv)</option>
+          <option value="renovering">04: 70'er Villa Energirenovering (175 m² — Varmepumpe + Sol)</option>
+        </select>
+      </div>
+
+      <div class="info-pill">
+        <span class="info-pill-label">ZONE / PROJEKT:</span>
+        <span class="info-pill-val" id="pillZoneName">CLT_Etagebolig_Aalborg</span>
+      </div>
+      <div class="grid-2">
+        <div class="field-group">
+          <div class="field-label">Bygningstype</div>
+          <select id="bldgType" onchange="updateModel()">
+            <option value="bolig" selected>Bolig (BR18)</option>
+            <option value="erhverv">Erhverv / Skole</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Areal A (m²)</div>
+          <input type="number" id="areaInput" value="980" min="30" max="50000" step="10" oninput="updateModel()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 // TILSKUD: SOL, SOLCELLER & SOLFANGER -->
+    <div class="section-block">
+      <div class="section-header">02 // TILSKUD: SOL, SOLCELLER &amp; SOLFANGER</div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span>Passiv Solindfald, Vinduer (kWh/m²)</span>
+          <span class="val-badge" id="lblSolPassiv">22,4</span>
+        </div>
+        <input type="range" id="rngSolPassiv" min="0" max="55" step="0.5" value="22.4" oninput="syncInput('SolPassiv', this.value)" />
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span>Solfanger — Termisk solvarme (kWh/m²)</span>
+          <span class="val-badge" id="lblSolfanger">7,8</span>
+        </div>
+        <input type="range" id="rngSolfanger" min="0" max="30" step="0.5" value="7.8" oninput="syncInput('Solfanger', this.value)" />
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span>Solceller — PV El-produktion (kWh/m²)</span>
+          <span class="val-badge" id="lblSolceller">11,5</span>
+        </div>
+        <input type="range" id="rngSolceller" min="0" max="40" step="0.5" value="11.5" oninput="syncInput('Solceller', this.value)" />
+      </div>
+
+      <div class="grid-2" style="margin-top:2px;">
+        <div class="field-group">
+          <div class="field-label">Intern: Personer</div>
+          <input type="number" id="inIntPers" value="11.2" min="0" max="40" step="0.5" oninput="updateModel()" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Intern: Apparater/Lys</div>
+          <input type="number" id="inIntApp" value="10.5" min="0" max="50" step="0.5" oninput="updateModel()" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span>Bygningens Tidskonstant τ (timer)</span>
+          <span class="val-badge" id="lblTau">65 t</span>
+        </div>
+        <select id="tauSelect" onchange="updateModel()">
+          <option value="35">Let trækonstruktion (τ = 35 t)</option>
+          <option value="65" selected>Mellemtung CLT / Træ-beton (τ = 65 t)</option>
+          <option value="110">Tung tegl / beton (τ = 110 t)</option>
+          <option value="150">Meget tung konstruktion (τ = 150 t)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 03 // KLIMASKÆRM, TAB & DRIFT -->
+    <div class="section-block">
+      <div class="section-header">03 // KLIMASKÆRM, VARMETAB &amp; DRIFT (kWh/m²)</div>
+      <div class="grid-2">
+        <div class="field-group">
+          <div class="field-label">Vægge, Tag &amp; Dæk</div>
+          <input type="number" id="inTransOpak" value="18.4" min="2" max="100" step="0.5" oninput="updateModel()" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Vinduer &amp; Døre</div>
+          <input type="number" id="inTransWin" value="14.2" min="2" max="80" step="0.5" oninput="updateModel()" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field-group">
+          <div class="field-label">Ventilation (m/ VGV)</div>
+          <input type="number" id="inVent" value="9.6" min="1" max="60" step="0.5" oninput="updateModel()" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Infiltration (Utæthed)</div>
+          <input type="number" id="inInfil" value="3.8" min="0.5" max="30" step="0.2" oninput="updateModel()" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field-group">
+          <div class="field-label">Varmt Brugsvand (VBV)</div>
+          <input type="number" id="inVBV" value="13.5" min="2" max="40" step="0.5" oninput="updateModel()" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">VBV System-/Lagertab</div>
+          <input type="number" id="inSysLoss" value="2.6" min="0" max="20" step="0.2" oninput="updateModel()" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field-group">
+          <div class="field-label">El: Vent. &amp; Pumper</div>
+          <input type="number" id="inElDrift" value="4.2" min="0.5" max="30" step="0.2" oninput="updateModel()" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">El: Belysning / Tillæg</div>
+          <input type="number" id="inElLys" value="1.4" min="0" max="30" step="0.2" oninput="updateModel()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 // FORSYNING & VISNINGSVALG -->
+    <div class="section-block">
+      <div class="section-header">04 // FORSYNING &amp; VISNINGSVALG</div>
+      <div class="field-group">
+        <div class="field-label">Primær Varmeforsyning (BR18 faktor)</div>
+        <select id="supplySelect" onchange="updateModel()">
+          <option value="fjernvarme" selected>Fjernvarme (Energifaktor 0,85)</option>
+          <option value="vp_luft">Varmepumpe Luft/Vand (SCOP 3,5 // El 1,90)</option>
+          <option value="vp_jord">Jordvarme (SCOP 4,2 // El 1,90)</option>
+          <option value="direkte_el">Direkte El / El-radiator (Faktor 1,90)</option>
+        </select>
+      </div>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="chkShowUnutilized" checked onchange="updateModel()" />
+        <span>Vis ikke-udnyttet sol/intern varme (udluftet)</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="chkShowPVExport" checked onchange="updateModel()" />
+        <span>Vis solcelle-overskud til elnet i Sankey</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="chkShowMonthly" checked onchange="updateModel()" />
+        <span>Vis 12-måneders balance nederst på planchen</span>
+      </label>
+    </div>
+
+    <!-- 05 // PLANCHE FARVETEMA -->
+    <div class="section-block">
+      <div class="section-header">05 // PLANCHE FARVETEMA</div>
+      <div class="field-group">
+        <select id="themeSelect" onchange="updateModel()">
+          <option value="nordic_terracotta" selected>Nordic Terracotta (Standard)</option>
+          <option value="scandi_pine">Scandi Pine &amp; Warm Ochre</option>
+          <option value="aalborg_blueprint">Aalborg Blueprint (Teknisk Blå/Skifer)</option>
+          <option value="monochrome_clay">Minimalist Charcoal &amp; Brændt Ler</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= HOVEDOMRÅDE ================= -->
+  <div class="main-area">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-nav-row">
+        <div class="tab-pill-bar">
+          <button class="tab-btn active" onclick="switchTab('01', this)">01 // SANKEY ENERGIBALANCE</button>
+          <button class="tab-btn" onclick="switchTab('02', this)">02 // TILSKUDS- &amp; SOL-ANALYSE</button>
+          <button class="tab-btn" onclick="switchTab('03', this)">03 // MÅNEDLIG BALANCE (12 MDR)</button>
+          <button class="tab-btn" onclick="switchTab('04', this)">04 // BR18 RAMME &amp; PRIMÆRENERGI</button>
+          <button class="tab-btn" onclick="switchTab('05', this)">05 // BE18 DATA-INSPEKTØR</button>
+        </div>
+
+        <div class="export-actions">
+          <button class="btn-export" onclick="exportSVG()">↓ EKSPORTER SVG (ILLUSTRATOR)</button>
+          <button class="btn-export" onclick="exportPNG()">↓ GEM PLANCHE (.PNG)</button>
+        </div>
+      </div>
+
+      <!-- KPI STRIP -->
+      <div class="kpi-strip">
+        <div class="kpi-item">
+          <div class="kpi-label" id="kpiLabelRamme">BE18 ENERGIRAMME (KRAV ≤ 31,0)</div>
+          <div class="kpi-val-row">
+            <span class="kpi-value" id="kpiValRamme">23,4 kWh/m²</span>
+            <span class="kpi-badge ok" id="kpiBadgeRamme">GODKENDT</span>
+          </div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">LAVENERGIKLASSE (≤ 27,0)</div>
+          <div class="kpi-val-row">
+            <span class="kpi-value" id="kpiValLav">23,4 kWh/m²</span>
+            <span class="kpi-badge ok" id="kpiBadgeLav">OPFYLDT</span>
+          </div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">SAMLET SOL &amp; VEDVARENDE TILSKUD</div>
+          <div class="kpi-val-row">
+            <span class="kpi-value" id="kpiValTilskud">41,7 kWh/m²</span>
+            <span class="kpi-badge ok" id="kpiBadgeTilskud">61% DÆKNING</span>
+          </div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">UDNYTTELSESGRAD (PASSIV SOL + INT)</div>
+          <div class="kpi-val-row">
+            <span class="kpi-value" id="kpiValEta">74,8 %</span>
+            <span class="kpi-badge neutral" id="kpiBadgeTau">τ = 65t</span>
+          </div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">NETTO TILFØRT VARME + DRIFT-EL</div>
+          <div class="kpi-val-row">
+            <span class="kpi-value" id="kpiValNetto">21,9 kWh/m²</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PLANCHE CANVAS -->
+    <div class="workspace-scroll">
+      <div class="planche-card" id="plancheCard">
+        <div class="planche-header">
+          <div class="planche-kicker" id="plancheKicker">BE18 ENERGIRAMME &amp; TERMISK BALANCE // ZONE: CLT_ETAGEBOLIG_AALBORG (980 M²)</div>
+          <h1 class="planche-title" id="plancheTitle">01 // THE ENERGY TAPESTRY — SANKEY FLOW &amp; SOL-TILSKUDSBALANCE</h1>
+          <div class="planche-subtitle" id="plancheSubtitle">
+            Årlig energistrøm fra passiv sol, solfanger, solceller (PV), intern varme og forsyning til varmetab, varmt brugsvand og teknisk drift (kWh/m² pr. år)
+          </div>
+        </div>
+
+        <!-- SVG RENDER CONTAINER -->
+        <div class="svg-container" id="svgContainer"></div>
+
+        <!-- DATA INSPECTOR CONTAINER (Hidden unless tab 05 is active) -->
+        <div id="inspectorContainer" style="display:none;"></div>
+
+        <!-- PLANCHE FOOTER -->
+        <div class="planche-footer">
+          <div id="footerLeftText">
+            ENERGIRAMME: 23,4 kWh/m²/år (BR18 KRAV: 31,0) // TEMA: NORDIC TERRACOTTA
+          </div>
+          <div class="legend-scale" id="footerLegend"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TIL UDKLIPSHOLDER -->
+  <div class="modal-backdrop" id="pasteModal">
+    <div class="modal-box">
+      <div class="brand-kicker">BE18 PARSER // TEKST ELLER XML</div>
+      <div style="font-weight:700; font-size:15px;">Indsæt Be18 resultat-udtræk eller nøgletal</div>
+      <p style="font-size:11.5px; color:var(--text-secondary);">
+        Indsæt rækker fra Be18 nøgletalsrapport, XML-udtræk eller tabulator-separerede værdier. Parseren genkender automatisk ord som <em>Solindfald, Solceller, Solfanger, Transmission, Ventilation, Brugsvand</em> osv.
+      </p>
+      <textarea id="pasteTextarea" placeholder="Eksempel:
+Areal: 450
+Solindfald: 26.4
+Solfanger: 6.5
+Solceller: 14.2
+Personer: 10.0
+Apparater: 9.5
+Transmission vægge/tag: 16.8
+Vinduer: 13.4
+Ventilation: 8.2
+Infiltration: 3.1
+Varmt brugsvand: 13.0"></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-secondary" style="width:auto; padding:6px 14px;" onclick="closePasteModal()">Annuller</button>
+        <button class="btn-secondary btn-accent" style="width:auto; padding:6px 16px;" onclick="parsePastedText()">Indlæs i model</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= FARVETEMAER (NORDIC ARCHITECTURAL PALETTES) =================
+    const THEMES = {
+      nordic_terracotta: {
+        name: 'NORDIC TERRACOTTA',
+        accent: '#c85a32',
+        solPassiv: '#d98a3c',     // Varm okker / rav (Passiv sol)
+        solfanger: '#c85a32',     // Terracotta (Termisk solfanger)
+        solceller: '#5b8a72',     // Støvet salviegrøn (PV Solceller - vedvarende el)
+        intern: '#dfae6b',        // Lys sand-guld (Intern varme: personer & apparater)
+        forsyningVarme: '#a3432b',// Dyb rustrød (Fjernvarme / Opvarmning)
+        forsyningEl: '#6e7f8d',   // Stålblå-grå (Net-el)
+        hubTermisk: '#8c5843',    // Varm ler-brun
+        hubVBV: '#b85d38',        // Kobber-terracotta
+        hubEl: '#52736b',         // Dyb fyrretræsgrøn
+        lossTrans: '#4d6d7e',     // Nordisk petrol / skiferblå (Klimaskærm)
+        lossWin: '#688896',       // Lysere stålblå (Vinduestab)
+        lossVent: '#849da6',      // Kold tågeblå (Ventilation)
+        lossInfil: '#a0b2b8',     // Lys isblå (Infiltration)
+        lossUnutil: '#c9b99f',    // Varm sandgrå (Udluftet overskudsvarme)
+        useVBV: '#c47247',        // Varmt brugsvand
+        useEl: '#648374',         // Drift el
+        exportPV: '#8eb39e'       // Eksporteret PV
+      },
+      scandi_pine: {
+        name: 'SCANDI PINE & OCHRE',
+        accent: '#3b6252',
+        solPassiv: '#d49a35',
+        solfanger: '#b86830',
+        solceller: '#3b6252',
+        intern: '#dfc943c9',
+        forsyningVarme: '#8c4932',
+        forsyningEl: '#5c6b64',
+        hubTermisk: '#6b5e4c',
+        hubVBV: '#9c5a34',
+        hubEl: '#3b6252',
+        lossTrans: '#2f4858',
+        lossWin: '#4b6878',
+        lossVent: '#6c8794',
+        lossInfil: '#92a8b3',
+        lossUnutil: '#c4bca7',
+        useVBV: '#b86830',
+        useEl: '#4d7564',
+        exportPV: '#7fa392'
+      },
+      aalborg_blueprint: {
+        name: 'AALBORG BLUEPRINT',
+        accent: '#2b5b84',
+        solPassiv: '#d17b49',
+        solfanger: '#b55037',
+        solceller: '#3a7d7c',
+        intern: '#df9e68',
+        forsyningVarme: '#8f3d2e',
+        forsyningEl: '#496580',
+        hubTermisk: '#365875',
+        hubVBV: '#8c4b3e',
+        hubEl: '#2f6b6a',
+        lossTrans: '#223e59',
+        lossWin: '#385a7c',
+        lossVent: '#567899',
+        lossInfil: '#7c99b5',
+        lossUnutil: '#b8c2cc',
+        useVBV: '#a85944',
+        useEl: '#3f7885',
+        exportPV: '#71a6a5'
+      },
+      monochrome_clay: {
+        name: 'MINIMALIST CHARCOAL & CLAY',
+        accent: '#b85032',
+        solPassiv: '#c86a44',
+        solfanger: '#a84424',
+        solceller: '#6e786f',
+        intern: '#d6906d',
+        forsyningVarme: '#733322',
+        forsyningEl: '#575652',
+        hubTermisk: '#4a4845',
+        hubVBV: '#8c432b',
+        hubEl: '#5c635d',
+        lossTrans: '#2e2d2b',
+        lossWin: '#4a4946',
+        lossVent: '#696763',
+        lossInfil: '#8a8782',
+        lossUnutil: '#c2bdb4',
+        useVBV: '#9e4c33',
+        useEl: '#5e665f',
+        exportPV: '#919992'
+      }
+    };
+
+    // ================= PROJEKT PRESETS =================
+    const PRESETS = {
+      scandi_cabin: {
+        zone: 'Skovhytte_Pebermosen',
+        type: 'bolig',
+        area: 145,
+        solPassiv: 28.5,
+        solfanger: 4.5,
+        solceller: 14.0,
+        intPers: 9.4,
+        intApp: 8.8,
+        tau: '35',
+        transOpak: 21.0,
+        transWin: 16.5,
+        vent: 8.4,
+        infil: 4.2,
+        vbv: 12.0,
+        sysLoss: 2.0,
+        elDrift: 3.6,
+        elLys: 1.0,
+        supply: 'vp_luft'
+      },
+      clt_housing: {
+        zone: 'CLT_Etagebolig_Aalborg',
+        type: 'bolig',
+        area: 980,
+        solPassiv: 22.4,
+        solfanger: 7.8,
+        solceller: 11.5,
+        intPers: 11.2,
+        intApp: 10.5,
+        tau: '65',
+        transOpak: 18.4,
+        transWin: 14.2,
+        vent: 9.6,
+        infil: 3.8,
+        vbv: 13.5,
+        sysLoss: 2.6,
+        elDrift: 4.2,
+        elLys: 1.4,
+        supply: 'fjernvarme'
+      },
+      kulturhus: {
+        zone: 'Hybrid_Kulturhus_Bibliotek',
+        type: 'erhverv',
+        area: 2200,
+        solPassiv: 25.0,
+        solfanger: 5.2,
+        solceller: 18.5,
+        intPers: 14.5,
+        intApp: 16.0,
+        tau: '110',
+        transOpak: 16.2,
+        transWin: 17.8,
+        vent: 14.5,
+        infil: 3.5,
+        vbv: 8.5,
+        sysLoss: 2.2,
+        elDrift: 7.8,
+        elLys: 8.4,
+        supply: 'fjernvarme'
+      },
+      renovering: {
+        zone: '70er_Villa_Energirenovering',
+        type: 'bolig',
+        area: 175,
+        solPassiv: 19.5,
+        solfanger: 9.5,
+        solceller: 16.0,
+        intPers: 10.2,
+        intApp: 10.0,
+        tau: '65',
+        transOpak: 26.5,
+        transWin: 15.8,
+        vent: 11.2,
+        infil: 5.5,
+        vbv: 14.0,
+        sysLoss: 3.1,
+        elDrift: 4.8,
+        elLys: 1.5,
+        supply: 'vp_jord'
+      }
+    };
+
+    let currentTab = '01';
+    let currentZoneName = 'CLT_Etagebolig_Aalborg';
+    let lastModel = null;
+
+    // Månedlige fordelingsvægte (Jan-Dec) for dansk DRY-klima (Be18 profil)
+    const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAJ', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
+    const W_LOSS   = [0.155, 0.140, 0.125, 0.085, 0.045, 0.018, 0.008, 0.012, 0.042, 0.088, 0.127, 0.155];
+    const W_SOL    = [0.020, 0.042, 0.085, 0.130, 0.160, 0.165, 0.155, 0.120, 0.068, 0.032, 0.013, 0.010];
+    const W_CONST  = [1/12,  1/12,  1/12,  1/12,  1/12,  1/12,  1/12,  1/12,  1/12,  1/12,  1/12,  1/12];
+
+    function fmt(num, dec = 1) {
+      return Number(num).toFixed(dec).replace('.', ',');
+    }
+
+    function syncInput(key, val) {
+      document.getElementById('lbl' + key).textContent = fmt(val, 1);
+      updateModel();
+    }
+
+    function loadPreset(presetKey) {
+      const p = PRESETS[presetKey];
+      if (!p) return;
+      currentZoneName = p.zone;
+      document.getElementById('pillZoneName').textContent = p.zone;
+      document.getElementById('bldgType').value = p.type;
+      document.getElementById('areaInput').value = p.area;
+      document.getElementById('rngSolPassiv').value = p.solPassiv;
+      document.getElementById('lblSolPassiv').textContent = fmt(p.solPassiv);
+      document.getElementById('rngSolfanger').value = p.solfanger;
+      document.getElementById('lblSolfanger').textContent = fmt(p.solfanger);
+      document.getElementById('rngSolceller').value = p.solceller;
+      document.getElementById('lblSolceller').textContent = fmt(p.solceller);
+      document.getElementById('inIntPers').value = p.intPers;
+      document.getElementById('inIntApp').value = p.intApp;
+      document.getElementById('tauSelect').value = p.tau;
+      document.getElementById('inTransOpak').value = p.transOpak;
+      document.getElementById('inTransWin').value = p.transWin;
+      document.getElementById('inVent').value = p.vent;
+      document.getElementById('inInfil').value = p.infil;
+      document.getElementById('inVBV').value = p.vbv;
+      document.getElementById('inSysLoss').value = p.sysLoss;
+      document.getElementById('inElDrift').value = p.elDrift;
+      document.getElementById('inElLys').value = p.elLys;
+      document.getElementById('supplySelect').value = p.supply;
+      updateModel();
+    }
+
+    // ================= BE18 / ISO 13790 BEREGNINGSMOTOR =================
+    function calculateBe18Model() {
+      const bldgType = document.getElementById('bldgType').value;
+      const area = Math.max(20, parseFloat(document.getElementById('areaInput').value) || 150);
+
+      const solPassiv = parseFloat(document.getElementById('rngSolPassiv').value) || 0;
+      const solfanger = parseFloat(document.getElementById('rngSolfanger').value) || 0;
+      const solceller = parseFloat(document.getElementById('rngSolceller').value) || 0;
+      const intPers   = parseFloat(document.getElementById('inIntPers').value) || 0;
+      const intApp    = parseFloat(document.getElementById('inIntApp').value) || 0;
+      const tau       = parseFloat(document.getElementById('tauSelect').value) || 65;
+
+      const transOpak = parseFloat(document.getElementById('inTransOpak').value) || 0;
+      const transWin  = parseFloat(document.getElementById('inTransWin').value) || 0;
+      const vent      = parseFloat(document.getElementById('inVent').value) || 0;
+      const infil     = parseFloat(document.getElementById('inInfil').value) || 0;
+      const vbvNetto  = parseFloat(document.getElementById('inVBV').value) || 0;
+      const sysLoss   = parseFloat(document.getElementById('inSysLoss').value) || 0;
+      const elDrift   = parseFloat(document.getElementById('inElDrift').value) || 0;
+      const elLys     = parseFloat(document.getElementById('inElLys').value) || 0;
+
+      const supply = document.getElementById('supplySelect').value;
+      const showUnutilized = document.getElementById('chkShowUnutilized').checked;
+      const showPVExport   = document.getElementById('chkShowPVExport').checked;
+      const showMonthly    = document.getElementById('chkShowMonthly').checked;
+      const themeKey       = document.getElementById('themeSelect').value;
+      const theme          = THEMES[themeKey] || THEMES.nordic_terracotta;
+
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      document.getElementById('lblTau').textContent = tau + ' t';
+
+      // 1. Samlet rumvarmetab (klimaskærm + luftskifte)
+      const qLossRoom = transOpak + transWin + vent + infil;
+
+      // 2. Gratis interne og passive sol-tilskud i rummet
+      const qGainRoom = solPassiv + intPers + intApp;
+
+      // 3. EN ISO 13790 udnyttelsesgrad (eta) baseret på tidskonstant tau og gamma
+      const aParam = 1.0 + (tau / 15.0);
+      const gamma = qLossRoom > 0 ? (qGainRoom / qLossRoom) : 0;
+      let eta = 1.0;
+      if (gamma > 0) {
+        if (Math.abs(gamma - 1.0) < 1e-4) {
+          eta = aParam / (aParam + 1.0);
+        } else {
+          eta = (1.0 - Math.pow(gamma, aParam)) / (1.0 - Math.pow(gamma, aParam + 1.0));
+        }
+      }
+      eta = Math.min(1.0, Math.max(0.15, eta));
+
+      const qGainUtilized   = qGainRoom * eta;
+      const qGainUnutilized = qGainRoom * (1.0 - eta); // Udluftet / bidrag til overtemperatur
+
+      const solPassivUtil   = solPassiv * eta;
+      const solPassivUnutil = solPassiv * (1.0 - eta);
+      const intTotal        = intPers + intApp;
+      const intUtil         = intTotal * eta;
+      const intUnutil       = intTotal * (1.0 - eta);
+
+      // 4. Solfanger (Termisk solvarme)
+      // Dækker primært VBV + systemtab (op til 75% af VBV pga. sæsonforskydning), rest dækker evt. rumvarme
+      const vbvTotalDemand = vbvNetto + sysLoss;
+      const solfangerToVBV = Math.min(vbvTotalDemand * 0.80, solfanger);
+      const solfangerLeft  = Math.max(0, solfanger - solfangerToVBV);
+      const roomAfterPassive = Math.max(0, qLossRoom - qGainUtilized);
+      const solfangerToRoom  = Math.min(roomAfterPassive * 0.5, solfangerLeft);
+      const solfangerUnutil  = Math.max(0, solfanger - solfangerToVBV - solfangerToRoom);
+
+      // 5. Netto opvarmningsbehov fra varmeforsyning
+      const netRoomHeatSupply = Math.max(0, qLossRoom - qGainUtilized - solfangerToRoom);
+      const netVBVSupply      = Math.max(0, vbvTotalDemand - solfangerToVBV);
+      const totalThermalSupply = netRoomHeatSupply + netVBVSupply;
+
+      // 6. El-behov og Varmepumpe-konvertering
+      let scop = 1.0;
+      let heatPrimaryFactor = 0.85;
+      let elPrimaryFactor = 1.90;
+      let supplyName = 'Fjernvarme (0,85)';
+      let elForHeatPump = 0;
+      let ambientHeatGain = 0; // Omgivelsesvarme (luft/jord) ved varmepumpe
+
+      if (supply === 'vp_luft') {
+        scop = 3.5;
+        supplyName = 'Luft/Vand VP (SCOP 3,5)';
+        elForHeatPump = totalThermalSupply / scop;
+        ambientHeatGain = totalThermalSupply - elForHeatPump;
+      } else if (supply === 'vp_jord') {
+        scop = 4.2;
+        supplyName = 'Jordvarme VP (SCOP 4,2)';
+        elForHeatPump = totalThermalSupply / scop;
+        ambientHeatGain = totalThermalSupply - elForHeatPump;
+      } else if (supply === 'direkte_el') {
+        scop = 1.0;
+        heatPrimaryFactor = 1.90;
+        supplyName = 'Direkte El (1,90)';
+      }
+
+      const techElTotal = elDrift + elLys;
+      const totalBuildingElDemand = techElTotal + elForHeatPump;
+
+      // 7. Solceller (PV) dækning af bygningsdrift vs. eksport til elnet
+      const pvSelfUsed = Math.min(totalBuildingElDemand, solceller);
+      const pvExported = Math.max(0, solceller - pvSelfUsed);
+      const netGridEl  = Math.max(0, totalBuildingElDemand - pvSelfUsed);
+
+      // 8. BR18 Energiramme (Primærenergi)
+      // Krav: Bolig = 30 + 1000/A, Erhverv = 41 + 1000/A
+      const br18Limit = (bldgType === 'bolig' ? 30.0 : 41.0) + (1000.0 / area);
+      const lowEnergyLimit = 27.0;
+
+      let primaryHeatPart = 0;
+      if (supply === 'fjernvarme' || supply === 'direkte_el') {
+        primaryHeatPart = totalThermalSupply * heatPrimaryFactor;
+      } else {
+        // For varmepumpe ligger opvarmnings-el i netGridEl / pvSelfUsed
+        primaryHeatPart = 0;
+      }
+      // I Be18 kan solceller reducere energirammen (dog højst svarende til elbehov / max 25 kWh/m² primær)
+      const primaryElPart = netGridEl * elPrimaryFactor;
+      const be18Result = primaryHeatPart + primaryElPart;
+
+      // 9. Månedlige data (12 måneder)
+      const monthly = MONTHS.map((m, i) => {
+        const mLossRoom = qLossRoom * W_LOSS[i];
+        const mLossVBV  = vbvTotalDemand * W_CONST[i];
+        const mSolPass  = solPassiv * W_SOL[i];
+        const mInt      = intTotal * W_CONST[i];
+        const mSolf     = solfanger * W_SOL[i];
+        const mPV       = solceller * W_SOL[i];
+        const mUtilGain = Math.min(mLossRoom, (mSolPass + mInt) * eta + mSolf * 0.35);
+        const mNetHeat  = Math.max(0, mLossRoom - mUtilGain) + Math.max(0, mLossVBV - mSolf * 0.65);
+        return {
+          month: m,
+          lossTotal: mLossRoom + mLossVBV,
+          lossRoom: mLossRoom,
+          lossVBV: mLossVBV,
+          solPassiv: mSolPass,
+          intern: mInt,
+          solfanger: mSolf,
+          solceller: mPV,
+          netHeat: mNetHeat
+        };
+      });
+
+      const totalRenewable = solPassiv + solfanger + solceller + ambientHeatGain;
+      const totalGrossEnergy = qLossRoom + vbvTotalDemand + techElTotal;
+      const renewableSharePct = totalGrossEnergy > 0
+        ? Math.min(100, Math.round(((solPassivUtil + solfangerToVBV + solfangerToRoom + pvSelfUsed + ambientHeatGain) / totalGrossEnergy) * 100))
+        : 0;
+
+      return {
+        bldgType, area,
+        solPassiv, solfanger, solceller, intPers, intApp, intTotal, tau,
+        transOpak, transWin, vent, infil, vbvNetto, sysLoss, vbvTotalDemand,
+        elDrift, elLys, techElTotal,
+        qLossRoom, qGainRoom, eta,
+        qGainUtilized, qGainUnutilized,
+        solPassivUtil, solPassivUnutil, intUtil, intUnutil,
+        solfangerToVBV, solfangerToRoom, solfangerUnutil,
+        netRoomHeatSupply, netVBVSupply, totalThermalSupply,
+        supply, supplyName, scop, elForHeatPump, ambientHeatGain,
+        totalBuildingElDemand, pvSelfUsed, pvExported, netGridEl,
+        br18Limit, lowEnergyLimit, primaryHeatPart, primaryElPart, be18Result,
+        renewableSharePct, totalRenewable,
+        showUnutilized, showPVExport, showMonthly,
+        themeKey, theme, monthly
+      };
+    }
+
+    // ================= OPDATER UI & KPI'ER =================
+    function updateModel() {
+      const m = calculateBe18Model();
+      lastModel = m;
+
+      // KPI Strip
+      document.getElementById('kpiLabelRamme').textContent = `BE18 ENERGIRAMME (KRAV ≤ ${fmt(m.br18Limit)})`;
+      document.getElementById('kpiValRamme').textContent = `${fmt(m.be18Result)} kWh/m²`;
+      const badgeRamme = document.getElementById('kpiBadgeRamme');
+      if (m.be18Result <= m.br18Limit) {
+        badgeRamme.textContent = 'GODKENDT';
+        badgeRamme.className = 'kpi-badge ok';
+      } else {
+        badgeRamme.textContent = 'OVERSKREDET';
+        badgeRamme.className = 'kpi-badge warn';
+      }
+
+      document.getElementById('kpiValLav').textContent = `${fmt(m.be18Result)} kWh/m²`;
+      const badgeLav = document.getElementById('kpiBadgeLav');
+      if (m.be18Result <= m.lowEnergyLimit) {
+        badgeLav.textContent = 'OPFYLDT';
+        badgeLav.className = 'kpi-badge ok';
+      } else {
+        badgeLav.textContent = `+${fmt(m.be18Result - m.lowEnergyLimit)} OVER`;
+        badgeLav.className = 'kpi-badge neutral';
+      }
+
+      const activeSunTotal = m.solPassiv + m.solfanger + m.solceller;
+      document.getElementById('kpiValTilskud').textContent = `${fmt(activeSunTotal)} kWh/m²`;
+      document.getElementById('kpiBadgeTilskud').textContent = `${m.renewableSharePct}% DÆKNING`;
+
+      document.getElementById('kpiValEta').textContent = `${fmt(m.eta * 100, 1)} %`;
+      document.getElementById('kpiBadgeTau').textContent = `τ = ${m.tau}t`;
+
+      const netDelivered = (m.supply === 'fjernvarme' || m.supply === 'direkte_el')
+        ? (m.totalThermalSupply + m.netGridEl)
+        : m.netGridEl;
+      document.getElementById('kpiValNetto').textContent = `${fmt(netDelivered)} kWh/m²`;
+
+      // Planche Header & Footer
+      document.getElementById('plancheKicker').textContent =
+        `BE18 ENERGIRAMME & TERMISK SIMULERING // ZONE: ${currentZoneName.toUpperCase()} (${m.area} M²)`;
+      document.getElementById('footerLeftText').textContent =
+        `ENERGIRAMME: ${fmt(m.be18Result)} kWh/m²/år (BR18 KRAV: ${fmt(m.br18Limit)}) // UDNYTTELSESGRAD η: ${fmt(m.eta * 100)}% // TEMA: ${m.theme.name}`;
+
+      renderLegend(m.theme);
+      renderCurrentTab(m);
+    }
+
+    function renderLegend(t) {
+      const items = [
+        { label: 'Passiv Sol', color: t.solPassiv },
+        { label: 'Solfanger', color: t.solfanger },
+        { label: 'Solceller (PV)', color: t.solceller },
+        { label: 'Intern Varme', color: t.intern },
+        { label: 'Forsyning', color: t.forsyningVarme },
+        { label: 'Klimaskærmstab', color: t.lossTrans },
+        { label: 'Vent./Infil.', color: t.lossVent },
+        { label: 'Udluftet Overskud', color: t.lossUnutil }
+      ];
+      const container = document.getElementById('footerLegend');
+      container.innerHTML = '<span>SKALA / POSTER:</span>' + items.map(it => `
+        <span class="swatch-item">
+          <span class="swatch-box" style="background:${it.color}"></span>
+          <span>${it.label}</span>
+        </span>
+      `).join('');
+    }
+
+    function switchTab(tabId, btnEl) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      if (lastModel) renderCurrentTab(lastModel);
+    }
+
+    function renderCurrentTab(m) {
+      const svgBox = document.getElementById('svgContainer');
+      const inspBox = document.getElementById('inspectorContainer');
+      const titleEl = document.getElementById('plancheTitle');
+      const subEl = document.getElementById('plancheSubtitle');
+
+      if (currentTab === '05') {
+        svgBox.style.display = 'none';
+        inspBox.style.display = 'block';
+        titleEl.textContent = '05 // BE18 DATA-INSPEKTØR — NØGLETAL, FRAKTIONER & PRIMÆRENERGI';
+        subEl.textContent = `Komplet tabeludtræk for ${currentZoneName} (${m.area} m²) — både specifikke værdier (kWh/m²/år) og totaler (kWh/år)`;
+        renderDataInspector(m);
+        return;
+      }
+
+      svgBox.style.display = 'block';
+      inspBox.style.display = 'none';
+
+      if (currentTab === '01') {
+        titleEl.textContent = '01 // THE ENERGY TAPESTRY — SANKEY FLOW & SOL-TILSKUDSBALANCE';
+        subEl.textContent = `Samlet energistrøm fra passiv sol (${fmt(m.solPassiv)}), solfanger (${fmt(m.solfanger)}), solceller (${fmt(m.solceller)}), intern varme og forsyning til tab og drift (kWh/m² pr. år)`;
+        svgBox.innerHTML = buildSankeyPlancheSVG(m);
+      } else if (currentTab === '02') {
+        titleEl.textContent = '02 // TILSKUDS- & SOL-ANALYSE — PASSIV SOL, SOLFANGER & SOLCELLER (PV)';
+        subEl.textContent = `Detaljeret dekomponering af gratis energitilskud, udnyttelsesgrad η = ${fmt(m.eta * 100)}% (τ = ${m.tau}t), egenforbrug af solceller og varmepumpe-bidrag`;
+        svgBox.innerHTML = buildSolarContributionsSVG(m);
+      } else if (currentTab === '03') {
+        titleEl.textContent = '03 // MÅNEDLIG BALANCE (12 MDR) — TILSKUD VS. VARMETAB HEN OVER ÅRET';
+        subEl.textContent = 'Sæsonprofil for varmetab (transmission + ventilation + VBV) modregnet passiv sol, intern varme, solfanger og solceller (JAN – DEC)';
+        svgBox.innerHTML = buildMonthlyFullSVG(m);
+      } else if (currentTab === '04') {
+        titleEl.textContent = '04 // BR18 ENERGIRAMME & PRIMÆRENERGI — FRA BRUTTOBEHOV TIL MYNDIGHEDSKRAV';
+        subEl.textContent = `Vandfalds- og faktor-analyse efter BR18 (${m.supplyName}, el-faktor 1,90) sammenholdt med energiramme (${fmt(m.br18Limit)} kWh/m²) og lavenergiklasse (27,0 kWh/m²)`;
+        svgBox.innerHTML = buildBR18WaterfallSVG(m);
+      }
+    }
+
+    // ================= TAB 01: CUSTOM PARAMETRISK SANKEY SVG + 12-MDR BAR CHART =================
+    function buildSankeyPlancheSVG(m) {
+      const t = m.theme;
+      const W = 1140;
+      const sankeyH = 470;
+      const totalH = m.showMonthly ? 665 : 495;
+
+      // Kolonne X-positioner (3-trins arkitektonisk Sankey)
+      const col0X = 215; // Venstre: Energikilder & Tilskud
+      const col1X = 560; // Midten: Bygningens Energibalance-knudepunkter
+      const col2X = 900; // Højre: Varmetab, Slutforbrug & Overskud
+      const nodeW = 14;
+
+      // Opbyg Venstre Noder (Kilder & Tilskud)
+      const leftNodes = [
+        { id: 'solPassiv', label: 'Passiv Solindfald (Vinduer)', val: m.solPassiv, color: t.solPassiv },
+        { id: 'intern',    label: 'Intern Varme (Personer & App.)', val: m.intTotal, color: t.intern },
+        { id: 'solfanger', label: 'Solfanger (Termisk Solvarme)', val: m.solfanger, color: t.solfanger }
+      ];
+
+      if (m.supply === 'fjernvarme' || m.supply === 'direkte_el') {
+        leftNodes.push({
+          id: 'heatSupply',
+          label: m.supply === 'fjernvarme' ? 'Fjernvarme (Forsyning)' : 'Direkte El-varme',
+          val: m.totalThermalSupply,
+          color: t.forsyningVarme
+        });
+      } else {
+        leftNodes.push({
+          id: 'ambientVP',
+          label: 'Omgivelsesvarme (VP Luft/Jord)',
+          val: m.ambientHeatGain,
+          color: t.solfanger
+        });
+      }
+
+      leftNodes.push(
+        { id: 'solceller', label: 'Solceller (PV El-produktion)', val: m.solceller, color: t.solceller },
+        { id: 'gridEl',    label: 'Net-El (Forsynings-el)', val: m.netGridEl, color: t.forsyningEl }
+      );
+
+      // Opbyg Midterste Noder (Bygningens 3 hovedkredsløb + evt. direkte overskud)
+      const roomHubTotal = m.qLossRoom + (m.showUnutilized ? (m.qGainUnutilized + m.solfangerUnutil) : 0);
+      const vbvHubTotal  = m.vbvTotalDemand;
+      const elHubTotal   = m.techElTotal + (m.showPVExport ? m.pvExported : 0);
+
+      const midNodes = [
+        { id: 'hubRoom', label: 'Rumvarme & Termisk Zone', val: roomHubTotal, color: t.hubTermisk },
+        { id: 'hubVBV',  label: 'Varmt Brugsvand (VBV)',   val: vbvHubTotal,  color: t.hubVBV },
+        { id: 'hubEl',   label: 'El-balance & Drift',      val: elHubTotal,   color: t.hubEl }
+      ];
+
+      // Opbyg Højre Noder (Varmetab, Slutforbrug & Overskud)
+      const rightNodes = [
+        { id: 'lossOpak',  label: 'Transmission (Vægge, Tag, Dæk)', val: m.transOpak, color: t.lossTrans },
+        { id: 'lossWin',   label: 'Vinduer & Glaspartier (U-værdi)', val: m.transWin,  color: t.lossWin },
+        { id: 'lossVent',  label: 'Ventilationstab (m/ VGV)',        val: m.vent,      color: t.lossVent },
+        { id: 'lossInfil', label: 'Infiltration (Utætheder)',        val: m.infil,     color: t.lossInfil }
+      ];
+
+      if (m.showUnutilized && (m.qGainUnutilized + m.solfangerUnutil) > 0.1) {
+        rightNodes.push({
+          id: 'lossUnutil',
+          label: 'Udluftet Sol/Intern Overskud',
+          val: m.qGainUnutilized + m.solfangerUnutil,
+          color: t.lossUnutil
+        });
+      }
+
+      rightNodes.push(
+        { id: 'outVBV',     label: 'Varmt Brugsvand (Netto Tapning)', val: m.vbvNetto, color: t.useVBV },
+        { id: 'outSysLoss', label: 'VBV System- & Cirkulationstab',   val: m.sysLoss,  color: t.lossInfil },
+        { id: 'outElDrift', label: 'El: Ventilatorer & Pumper',       val: m.elDrift,  color: t.useEl },
+        { id: 'outElLys',   label: 'El: Belysning & Øvrig Drift',     val: m.elLys,    color: t.solceller }
+      );
+
+      if (m.showPVExport && m.pvExported > 0.1) {
+        rightNodes.push({
+          id: 'outPVExport',
+          label: 'Solcelle-overskud til Elnet',
+          val: m.pvExported,
+          color: t.exportPV
+        });
+      }
+
+      // Filtrer noder med 0-værdi
+      const activeLeft  = leftNodes.filter(n => n.val > 0.05);
+      const activeMid   = midNodes.filter(n => n.val > 0.05);
+      const activeRight = rightNodes.filter(n => n.val > 0.05);
+
+      // Links mellem Venstre -> Midt
+      const linksLM = [];
+      // Passiv sol -> Rum
+      const passivToRoom = m.showUnutilized ? m.solPassiv : m.solPassivUtil;
+      if (passivToRoom > 0.05) linksLM.push({ from: 'solPassiv', to: 'hubRoom', val: passivToRoom, color: t.solPassiv });
+
+      // Intern varme -> Rum
+      const intToRoom = m.showUnutilized ? m.intTotal : m.intUtil;
+      if (intToRoom > 0.05) linksLM.push({ from: 'intern', to: 'hubRoom', val: intToRoom, color: t.intern });
+
+      // Solfanger -> Rum & VBV
+      const solfRoomPart = m.solfangerToRoom + (m.showUnutilized ? m.solfangerUnutil : 0);
+      if (solfRoomPart > 0.05) linksLM.push({ from: 'solfanger', to: 'hubRoom', val: solfRoomPart, color: t.solfanger });
+      if (m.solfangerToVBV > 0.05) linksLM.push({ from: 'solfanger', to: 'hubVBV', val: m.solfangerToVBV, color: t.solfanger });
+
+      // Forsyningsvarme ELLER Varmepumpe
+      if (m.supply === 'fjernvarme' || m.supply === 'direkte_el') {
+        if (m.netRoomHeatSupply > 0.05) linksLM.push({ from: 'heatSupply', to: 'hubRoom', val: m.netRoomHeatSupply, color: t.forsyningVarme });
+        if (m.netVBVSupply > 0.05)      linksLM.push({ from: 'heatSupply', to: 'hubVBV',  val: m.netVBVSupply,      color: t.forsyningVarme });
+      } else {
+        // Varmepumpe: Omgivelsesvarme + El fra Solceller/Net løber ind i Rum og VBV
+        const roomShare = m.totalThermalSupply > 0 ? (m.netRoomHeatSupply / m.totalThermalSupply) : 0.7;
+        const vbvShare  = 1.0 - roomShare;
+        if (m.ambientHeatGain * roomShare > 0.05) linksLM.push({ from: 'ambientVP', to: 'hubRoom', val: m.ambientHeatGain * roomShare, color: t.solfanger });
+        if (m.ambientHeatGain * vbvShare > 0.05)  linksLM.push({ from: 'ambientVP', to: 'hubVBV',  val: m.ambientHeatGain * vbvShare,  color: t.solfanger });
+      }
+
+      // Fordeling af Solceller (PV) og Net-El
+      const pvShareOfEl = m.totalBuildingElDemand > 0 ? (m.pvSelfUsed / m.totalBuildingElDemand) : 0;
+      const gridShareOfEl = 1.0 - pvShareOfEl;
+
+      if (m.elForHeatPump > 0.05) {
+        const roomShare = m.totalThermalSupply > 0 ? (m.netRoomHeatSupply / m.totalThermalSupply) : 0.7;
+        const vbvShare  = 1.0 - roomShare;
+        const pvToVP    = m.elForHeatPump * pvShareOfEl;
+        const gridToVP  = m.elForHeatPump * gridShareOfEl;
+
+        if (pvToVP * roomShare > 0.05)   linksLM.push({ from: 'solceller', to: 'hubRoom', val: pvToVP * roomShare,   color: t.solceller });
+        if (pvToVP * vbvShare > 0.05)    linksLM.push({ from: 'solceller', to: 'hubVBV',  val: pvToVP * vbvShare,    color: t.solceller });
+        if (gridToVP * roomShare > 0.05) linksLM.push({ from: 'gridEl',    to: 'hubRoom', val: gridToVP * roomShare, color: t.forsyningEl });
+        if (gridToVP * vbvShare > 0.05)  linksLM.push({ from: 'gridEl',    to: 'hubVBV',  val: gridToVP * vbvShare,  color: t.forsyningEl });
+      }
+
+      const pvToTechEl   = m.techElTotal * pvShareOfEl + (m.showPVExport ? m.pvExported : 0);
+      const gridToTechEl = m.techElTotal * gridShareOfEl;
+      if (pvToTechEl > 0.05)   linksLM.push({ from: 'solceller', to: 'hubEl', val: pvToTechEl,   color: t.solceller });
+      if (gridToTechEl > 0.05) linksLM.push({ from: 'gridEl',    to: 'hubEl', val: gridToTechEl, color: t.forsyningEl });
+
+      // Links mellem Midt -> Højre
+      const linksMR = [
+        { from: 'hubRoom', to: 'lossOpak',   val: m.transOpak, color: t.lossTrans },
+        { from: 'hubRoom', to: 'lossWin',    val: m.transWin,  color: t.lossWin },
+        { from: 'hubRoom', to: 'lossVent',   val: m.vent,      color: t.lossVent },
+        { from: 'hubRoom', to: 'lossInfil',  val: m.infil,     color: t.lossInfil }
+      ];
+      if (m.showUnutilized && (m.qGainUnutilized + m.solfangerUnutil) > 0.1) {
+        linksMR.push({ from: 'hubRoom', to: 'lossUnutil', val: m.qGainUnutilized + m.solfangerUnutil, color: t.lossUnutil });
+      }
+      linksMR.push(
+        { from: 'hubVBV', to: 'outVBV',     val: m.vbvNetto, color: t.useVBV },
+        { from: 'hubVBV', to: 'outSysLoss', val: m.sysLoss,  color: t.lossInfil },
+        { from: 'hubEl',  to: 'outElDrift', val: m.elDrift,  color: t.useEl },
+        { from: 'hubEl',  to: 'outElLys',   val: m.elLys,    color: t.solceller }
+      );
+      if (m.showPVExport && m.pvExported > 0.1) {
+        linksMR.push({ from: 'hubEl', to: 'outPVExport', val: m.pvExported, color: t.exportPV });
+      }
+
+      // Beregn vertikal skalering (px pr. kWh/m²)
+      const sumLeft  = activeLeft.reduce((acc, n) => acc + n.val, 0);
+      const sumMid   = activeMid.reduce((acc, n) => acc + n.val, 0);
+      const sumRight = activeRight.reduce((acc, n) => acc + n.val, 0);
+      const maxSum   = Math.max(sumLeft, sumMid, sumRight, 1);
+
+      const topY = 34;
+      const availH = sankeyH - 55;
+      const gapL = 14;
+      const gapM = 28;
+      const gapR = 11;
+      const maxGapsH = Math.max((activeLeft.length - 1) * gapL, (activeRight.length - 1) * gapR);
+      const scale = (availH - maxGapsH) / maxSum;
+
+      function layoutColumn(nodes, x, gap) {
+        const totalColH = nodes.reduce((acc, n) => acc + Math.max(4, n.val * scale), 0) + (nodes.length - 1) * gap;
+        let curY = topY + Math.max(0, (availH - totalColH) / 2);
+        const map = {};
+        nodes.forEach(n => {
+          const h = Math.max(4, n.val * scale);
+          n.x = x;
+          n.y = curY;
+          n.h = h;
+          n.outOffset = 0;
+          n.inOffset = 0;
+          map[n.id] = n;
+          curY += h + gap;
+        });
+        return map;
+      }
+
+      const mapL = layoutColumn(activeLeft, col0X, gapL);
+      const mapM = layoutColumn(activeMid,  col1X, gapM);
+      const mapR = layoutColumn(activeRight, col2X, gapR);
+
+      // Generer kubiske Bezier-stier
+      function renderLinks(links, srcMap, dstMap) {
+        return links.filter(l => l.val > 0.05 && srcMap[l.from] && dstMap[l.to]).map(l => {
+          const s = srcMap[l.from];
+          const d = dstMap[l.to];
+          const hS = (l.val / s.val) * s.h;
+          const hD = (l.val / d.val) * d.h;
+          const yS0 = s.y + s.outOffset;
+          const yS1 = yS0 + hS;
+          s.outOffset += hS;
+
+          const yD0 = d.y + d.inOffset;
+          const yD1 = yD0 + hD;
+          d.inOffset += hD;
+
+          const x0 = s.x + nodeW;
+          const x1 = d.x;
+          const cx = (x0 + x1) / 2;
+
+          const path = `M ${x0} ${yS0.toFixed(1)} C ${cx} ${yS0.toFixed(1)}, ${cx} ${yD0.toFixed(1)}, ${x1} ${yD0.toFixed(1)} L ${x1} ${yD1.toFixed(1)} C ${cx} ${yD1.toFixed(1)}, ${cx} ${yS1.toFixed(1)}, ${x0} ${yS1.toFixed(1)} Z`;
+          return `<path d="${path}" fill="${l.color}" fill-opacity="0.34" stroke="${l.color}" stroke-opacity="0.55" stroke-width="0.6">
+            <title>${s.label} → ${d.label}: ${fmt(l.val)} kWh/m²/år</title>
+          </path>`;
+        }).join('\n');
+      }
+
+      const pathsLM = renderLinks(linksLM, mapL, mapM);
+      const pathsMR = renderLinks(linksMR, mapM, mapR);
+
+      // Tegn Noder + Monospace Labels
+      function renderNodes(nodes, align) {
+        return nodes.map(n => {
+          const midY = n.y + n.h / 2;
+          let labelSVG = '';
+          if (align === 'left') {
+            labelSVG = `
+              <text x="${n.x - 10}" y="${midY - 3}" text-anchor="end" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#1f1e1b">${n.label}</text>
+              <text x="${n.x - 10}" y="${midY + 11}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="500" fill="#6b665e">${fmt(n.val)} kWh/m² (${Math.round(n.val * m.area)} kWh)</text>
+            `;
+          } else if (align === 'right') {
+            labelSVG = `
+              <text x="${n.x + nodeW + 10}" y="${midY - 3}" text-anchor="start" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#1f1e1b">${n.label}</text>
+              <text x="${n.x + nodeW + 10}" y="${midY + 11}" text-anchor="start" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="500" fill="#6b665e">${fmt(n.val)} kWh/m²</text>
+            `;
+          } else {
+            labelSVG = `
+              <rect x="${n.x - 82}" y="${midY - 17}" width="178" height="32" rx="3" fill="#fcfbf9" fill-opacity="0.88" stroke="#e2ded6" stroke-width="0.8"/>
+              <text x="${n.x + nodeW / 2}" y="${midY - 3}" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10.5" font-weight="700" fill="#1f1e1b">${n.label}</text>
+              <text x="${n.x + nodeW / 2}" y="${midY + 10}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="600" fill="${t.accent}">${fmt(n.val)} kWh/m²</text>
+            `;
+          }
+          return `
+            <g>
+              <rect x="${n.x}" y="${n.y.toFixed(1)}" width="${nodeW}" height="${n.h.toFixed(1)}" rx="2" fill="${n.color}" />
+              ${labelSVG}
+            </g>
+          `;
+        }).join('\n');
+      }
+
+      // Nederste 12-måneders bar-sektion (præcis som BSim Graphic Studio 2.1!)
+      let monthlyStripSVG = '';
+      if (m.showMonthly) {
+        const stripTop = 505;
+        const barAreaTop = 538;
+        const barH = 86;
+        const colW = 72;
+        const gapX = 14;
+        const startX = 68;
+        const maxM = Math.max(...m.monthly.map(d => Math.max(d.lossTotal, d.solPassiv + d.solfanger + d.solceller + d.intern)), 8);
+
+        const monthCols = m.monthly.map((d, idx) => {
+          const x = startX + idx * (colW + gapX);
+          const lossH = Math.min(barH, (d.lossTotal / maxM) * barH);
+          const solTotal = d.solPassiv + d.solfanger + d.solceller;
+          const solH = Math.min(barH, (solTotal / maxM) * barH);
+          const netH = Math.min(barH, (d.netHeat / maxM) * barH);
+
+          return `
+            <g>
+              <!-- Baggrundsboks som i BSim Graphic Studio -->
+              <rect x="${x}" y="${barAreaTop}" width="${colW}" height="${barH}" fill="#efece6" rx="1.5" />
+              <!-- Samlet varmetab (venstre halvdel i støvet blågrå) -->
+              <rect x="${x + 4}" y="${(barAreaTop + barH - lossH).toFixed(1)}" width="${colW/2 - 5}" height="${lossH.toFixed(1)}" fill="${t.lossTrans}" fill-opacity="0.75" />
+              <!-- Soltilskud: Passiv + Solfanger + PV (højre halvdel i varm okker/grøn) -->
+              <rect x="${x + colW/2 + 1}" y="${(barAreaTop + barH - solH).toFixed(1)}" width="${colW/2 - 5}" height="${solH.toFixed(1)}" fill="${t.solPassiv}" />
+              <!-- Netto opvarmningsbehov markering nederst i terracotta -->
+              <rect x="${x + 4}" y="${(barAreaTop + barH - netH).toFixed(1)}" width="${colW/2 - 5}" height="${netH.toFixed(1)}" fill="${t.accent}" />
+              <!-- Måned og tal -->
+              <text x="${x + colW/2}" y="${barAreaTop + barH + 15}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#2c2a27">${d.month}</text>
+              <text x="${x + colW/2}" y="${barAreaTop + barH + 27}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#78736a">${fmt(d.lossTotal,1)} / ${fmt(solTotal,1)}</text>
+            </g>
+          `;
+        }).join('\n');
+
+        monthlyStripSVG = `
+          <line x1="0" y1="${stripTop - 14}" x2="${W}" y2="${stripTop - 14}" stroke="#e4e0d7" stroke-width="1" />
+          <text x="68" y="${stripTop + 6}" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600" fill="#2c2a27" letter-spacing="0.03em">
+            MÅNEDLIG ENERGIBALANCE PR. MÅNED: VARMETAB &amp; NETTO OPVARMNING VS. SOL-TILSKUD (PASSIV SOL + SOLFANGER + PV) (kWh/m²)
+          </text>
+          <text x="54" y="${barAreaTop + 8}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" fill="#858078">${fmt(maxM,0)}</text>
+          <text x="54" y="${barAreaTop + barH}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" fill="#858078">0</text>
+          ${monthCols}
+        `;
+      }
+
+      return `
+        <svg id="mainPlancheSVG" viewBox="0 0 ${W} ${totalH}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${totalH}" fill="#fcfbf9" />
+          <!-- Kolonne Overskrifter -->
+          <text x="${col0X}" y="16" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="600" fill="#858078" letter-spacing="0.05em">01 // ENERGIKILDER &amp; SOLTILSKUD</text>
+          <text x="${col1X + nodeW/2}" y="16" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="600" fill="#858078" letter-spacing="0.05em">02 // BYGNINGENS KREDSLØB</text>
+          <text x="${col2X + nodeW}" y="16" text-anchor="start" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="600" fill="#858078" letter-spacing="0.05em">03 // VARMETAB, DRIFT &amp; OVERSKUD</text>
+
+          ${pathsLM}
+          ${pathsMR}
+          ${renderNodes(activeLeft, 'left')}
+          ${renderNodes(activeRight, 'right')}
+          ${renderNodes(activeMid, 'mid')}
+          ${monthlyStripSVG}
+        </svg>
+      `;
+    }
+
+    // ================= TAB 02: TILSKUDS- & SOL-ANALYSE SVG =================
+    function buildSolarContributionsSVG(m) {
+      const t = m.theme;
+      const W = 1140;
+      const H = 520;
+
+      // 4 kort i toppen + horisontale sammenligningsbjælker for hvert tilskud
+      const cards = [
+        {
+          kicker: '01 // PASSIV SOLINDFALD (VINDUER)',
+          title: `${fmt(m.solPassiv)} kWh/m²/år`,
+          sub1: `Udnyttet til rumvarme (η=${fmt(m.eta*100,0)}%): ${fmt(m.solPassivUtil)} kWh/m²`,
+          sub2: `Udluftet sommeroverskud: ${fmt(m.solPassivUnutil)} kWh/m²`,
+          color: t.solPassiv,
+          utilPct: m.solPassiv > 0 ? (m.solPassivUtil / m.solPassiv) : 0
+        },
+        {
+          kicker: '02 // SOLFANGER (TERMISK SOLVARME)',
+          title: `${fmt(m.solfanger)} kWh/m²/år`,
+          sub1: `Dækker Varmt Brugsvand: ${fmt(m.solfangerToVBV)} kWh/m²`,
+          sub2: `Dækker Rumvarme: ${fmt(m.solfangerToRoom)} kWh/m²`,
+          color: t.solfanger,
+          utilPct: m.solfanger > 0 ? ((m.solfangerToVBV + m.solfangerToRoom) / m.solfanger) : 0
+        },
+        {
+          kicker: '03 // SOLCELLER (PV EL-PRODUKTION)',
+          title: `${fmt(m.solceller)} kWh/m²/år`,
+          sub1: `Direkte bygningsdrift/VP: ${fmt(m.pvSelfUsed)} kWh/m²`,
+          sub2: `Overskud til elnet: ${fmt(m.pvExported)} kWh/m²`,
+          color: t.solceller,
+          utilPct: m.solceller > 0 ? (m.pvSelfUsed / m.solceller) : 0
+        },
+        {
+          kicker: '04 // INTERN VARME (PERSONER & APP.)',
+          title: `${fmt(m.intTotal)} kWh/m²/år`,
+          sub1: `Udnyttet varmebidrag: ${fmt(m.intUtil)} kWh/m²`,
+          sub2: `Personer: ${fmt(m.intPers)} // App./Lys: ${fmt(m.intApp)}`,
+          color: t.intern,
+          utilPct: m.eta
+        }
+      ];
+
+      const cardW = 262;
+      const cardGap = 24;
+      const cardsSVG = cards.map((c, idx) => {
+        const x = 10 + idx * (cardW + cardGap);
+        const barFillW = Math.round((cardW - 32) * Math.min(1, c.utilPct));
+        return `
+          <g transform="translate(${x}, 15)">
+            <rect width="${cardW}" height="145" rx="6" fill="#f5f2eb" stroke="#e0dbd0" stroke-width="1" />
+            <rect x="0" y="0" width="${cardW}" height="5" rx="2" fill="${c.color}" />
+            <text x="16" y="26" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="${c.color}">${c.kicker}</text>
+            <text x="16" y="54" font-family="'JetBrains Mono', monospace" font-size="21" font-weight="700" fill="#1f1e1b">${c.title}</text>
+            <text x="16" y="78" font-family="'Inter', sans-serif" font-size="11" fill="#4f4c46">${c.sub1}</text>
+            <text x="16" y="96" font-family="'Inter', sans-serif" font-size="11" fill="#78736a">${c.sub2}</text>
+            <rect x="16" y="114" width="${cardW - 32}" height="10" rx="2" fill="#e2ded5" />
+            <rect x="16" y="114" width="${barFillW}" height="10" rx="2" fill="${c.color}" />
+            <text x="${cardW - 16}" y="136" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" fill="#5c5952">NYTTEGRAD: ${Math.round(c.utilPct * 100)}%</text>
+          </g>
+        `;
+      }).join('\n');
+
+      // ISO 13790 Udnyttelsesgrad-kurve (eta som funktion af gamma for forskellige tidskonstanter)
+      const chartX = 70;
+      const chartY = 215;
+      const chartW = 480;
+      const chartH = 250;
+
+      function buildEtaCurve(tauVal, strokeCol, strokeW, dash = '') {
+        const a = 1 + tauVal / 15;
+        let pts = [];
+        for (let g = 0.05; g <= 2.5; g += 0.05) {
+          const etaVal = Math.abs(g - 1) < 1e-3 ? a / (a + 1) : (1 - Math.pow(g, a)) / (1 - Math.pow(g, a + 1));
+          const px = chartX + (g / 2.5) * chartW;
+          const py = chartY + chartH - (etaVal * chartH);
+          pts.push(`${px.toFixed(1)},${py.toFixed(1)}`);
+        }
+        return `<polyline fill="none" stroke="${strokeCol}" stroke-width="${strokeW}" ${dash ? `stroke-dasharray="${dash}"` : ''} points="${pts.join(' ')}" />`;
+      }
+
+      const curGamma = Math.min(2.5, m.qLossRoom > 0 ? (m.qGainRoom / m.qLossRoom) : 0);
+      const dotX = chartX + (curGamma / 2.5) * chartW;
+      const dotY = chartY + chartH - (m.eta * chartH);
+
+      // Højre graf: Dækningsgrad af Rumvarme, VBV og El-drift
+      const barStartX = 640;
+      const barW = 460;
+      const rows = [
+        {
+          title: `RUMVARMEBALANCE (${fmt(m.qLossRoom)} kWh/m² tab)`,
+          parts: [
+            { label: 'Passiv Sol', val: m.solPassivUtil, col: t.solPassiv },
+            { label: 'Intern Varme', val: m.intUtil, col: t.intern },
+            { label: 'Solfanger', val: m.solfangerToRoom, col: t.solfanger },
+            { label: 'Forsyning/VP', val: m.netRoomHeatSupply, col: t.forsyningVarme }
+          ]
+        },
+        {
+          title: `VARMT BRUGSVAND (${fmt(m.vbvTotalDemand)} kWh/m² inkl. tab)`,
+          parts: [
+            { label: 'Solfanger VBV', val: m.solfangerToVBV, col: t.solfanger },
+            { label: 'Forsyning/VP VBV', val: m.netVBVSupply, col: t.forsyningVarme }
+          ]
+        },
+        {
+          title: `BYGNINGENS EL-BEHOV (${fmt(m.totalBuildingElDemand)} kWh/m² drift + evt. VP)`,
+          parts: [
+            { label: 'Solceller (PV Egenforbrug)', val: m.pvSelfUsed, col: t.solceller },
+            { label: 'Net-El fra forsyning', val: m.netGridEl, col: t.forsyningEl }
+          ]
+        }
+      ];
+
+      const stackedBarsSVG = rows.map((r, idx) => {
+        const y = 235 + idx * 82;
+        const sum = Math.max(0.1, r.parts.reduce((a, b) => a + b.val, 0));
+        let curX = barStartX;
+        const rects = r.parts.filter(p => p.val > 0.05).map(p => {
+          const w = (p.val / sum) * barW;
+          const seg = `
+            <rect x="${curX.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="28" fill="${p.col}" stroke="#fcfbf9" stroke-width="1" />
+            ${w > 52 ? `<text x="${(curX + w/2).toFixed(1)}" y="${y + 18}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="600" fill="#fff">${fmt(p.val)}</text>` : ''}
+          `;
+          curX += w;
+          return seg;
+        }).join('');
+
+        const legendText = r.parts.filter(p => p.val > 0.05).map(p => `${p.label}: ${fmt(p.val)} (${Math.round((p.val/sum)*100)}%)`).join('  //  ');
+
+        return `
+          <g>
+            <text x="${barStartX}" y="${y - 8}" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" fill="#1f1e1b">${r.title}</text>
+            ${rects}
+            <text x="${barStartX}" y="${y + 43}" font-family="'Inter', sans-serif" font-size="10.5" fill="#5c5952">${legendText}</text>
+          </g>
+        `;
+      }).join('\n');
+
+      return `
+        <svg id="mainPlancheSVG" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${H}" fill="#fcfbf9" />
+          ${cardsSVG}
+
+          <!-- Venstre: EN ISO 13790 Udnyttelseskurve -->
+          <text x="${chartX}" y="196" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="700" fill="#1f1e1b">
+            EN ISO 13790 UDNYTTELSESGRAD (η) SOM FUNKTION AF TILSKUD/TAB-FORHOLD (γ)
+          </text>
+          <rect x="${chartX}" y="${chartY}" width="${chartW}" height="${chartH}" fill="#f5f2eb" stroke="#dcd7cc" />
+          <!-- Grid lines -->
+          <line x1="${chartX}" y1="${chartY + chartH*0.25}" x2="${chartX + chartW}" y2="${chartY + chartH*0.25}" stroke="#e4e0d7" stroke-dasharray="3,3" />
+          <line x1="${chartX}" y1="${chartY + chartH*0.50}" x2="${chartX + chartW}" y2="${chartY + chartH*0.50}" stroke="#e4e0d7" stroke-dasharray="3,3" />
+          <line x1="${chartX}" y1="${chartY + chartH*0.75}" x2="${chartX + chartW}" y2="${chartY + chartH*0.75}" stroke="#e4e0d7" stroke-dasharray="3,3" />
+          <text x="${chartX - 8}" y="${chartY + 8}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" fill="#6b665e">100%</text>
+          <text x="${chartX - 8}" y="${chartY + chartH*0.5 + 4}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" fill="#6b665e">50%</text>
+          <text x="${chartX - 8}" y="${chartY + chartH}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" fill="#6b665e">0%</text>
+
+          ${buildEtaCurve(35, '#9e988e', 1.5, '4,4')}
+          ${buildEtaCurve(150, '#788891', 1.5, '4,4')}
+          ${buildEtaCurve(m.tau, t.accent, 2.8)}
+
+          <!-- Aktuelt driftspunkt -->
+          <line x1="${dotX}" y1="${chartY}" x2="${dotX}" y2="${chartY + chartH}" stroke="${t.accent}" stroke-width="1" stroke-dasharray="2,2" />
+          <circle cx="${dotX}" cy="${dotY}" r="6" fill="${t.accent}" stroke="#fff" stroke-width="2" />
+          <text x="${Math.min(chartX + chartW - 140, dotX + 10)}" y="${dotY - 10}" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" fill="${t.accent}">
+            γ = ${fmt(curGamma,2)} → η = ${fmt(m.eta*100,1)}% (τ=${m.tau}t)
+          </text>
+          <text x="${chartX + chartW/2}" y="${chartY + chartH + 22}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#5c5952">
+            Tilskud / Varmetab-forhold γ = Q_tilskud / Q_tab (Øverste stiplet: τ=150t tung // Nederste stiplet: τ=35t let)
+          </text>
+
+          <!-- Højre: Dækningsgrad pr. energikredsløb -->
+          <text x="${barStartX}" y="196" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="700" fill="#1f1e1b">
+            KILDEFORDELING &amp; SELVDÆKNING PR. KREDSLØB (kWh/m²/ÅR)
+          </text>
+          ${stackedBarsSVG}
+        </svg>
+      `;
+    }
+
+    // ================= TAB 03: MÅNEDLIG BALANCE (12 MDR) SVG =================
+    function buildMonthlyFullSVG(m) {
+      const t = m.theme;
+      const W = 1140;
+      const H = 510;
+      const chartX = 70;
+      const chartY = 40;
+      const chartW = 1030;
+      const chartH = 380;
+
+      const maxVal = Math.max(...m.monthly.map(d => Math.max(d.lossTotal, d.solPassiv + d.solfanger + d.solceller + d.intern)), 10) * 1.12;
+      const colGroupW = chartW / 12;
+
+      const bars = m.monthly.map((d, i) => {
+        const gx = chartX + i * colGroupW;
+        const bw = 22;
+        const xLoss = gx + 14;
+        const xGain = gx + 40;
+
+        // Varmetab stabel (Rumtab + VBV)
+        const hLossRoom = (d.lossRoom / maxVal) * chartH;
+        const hLossVBV  = (d.lossVBV / maxVal) * chartH;
+        const yLossRoom = chartY + chartH - hLossRoom;
+        const yLossVBV  = yLossRoom - hLossVBV;
+
+        // Tilskud stabel (Intern + Passiv Sol + Solfanger + Solceller)
+        const hInt  = (d.intern / maxVal) * chartH;
+        const hSolP = (d.solPassiv / maxVal) * chartH;
+        const hSolf = (d.solfanger / maxVal) * chartH;
+        const hPV   = (d.solceller / maxVal) * chartH;
+
+        const yInt  = chartY + chartH - hInt;
+        const ySolP = yInt - hSolP;
+        const ySolf = ySolP - hSolf;
+        const yPV   = ySolf - hPV;
+
+        return `
+          <g>
+            <rect x="${gx + 6}" y="${chartY}" width="${colGroupW - 12}" height="${chartH}" fill="#f5f2eb" rx="2" />
+            <!-- Søjle 1: Varmetab (Rum + VBV) -->
+            <rect x="${xLoss}" y="${yLossRoom.toFixed(1)}" width="${bw}" height="${hLossRoom.toFixed(1)}" fill="${t.lossTrans}" />
+            <rect x="${xLoss}" y="${yLossVBV.toFixed(1)}" width="${bw}" height="${hLossVBV.toFixed(1)}" fill="${t.useVBV}" />
+
+            <!-- Søjle 2: Gratis Tilskud & Sol -->
+            <rect x="${xGain}" y="${yInt.toFixed(1)}" width="${bw}" height="${hInt.toFixed(1)}" fill="${t.intern}" />
+            <rect x="${xGain}" y="${ySolP.toFixed(1)}" width="${bw}" height="${hSolP.toFixed(1)}" fill="${t.solPassiv}" />
+            <rect x="${xGain}" y="${ySolf.toFixed(1)}" width="${bw}" height="${hSolf.toFixed(1)}" fill="${t.solfanger}" />
+            <rect x="${xGain}" y="${yPV.toFixed(1)}" width="${bw}" height="${hPV.toFixed(1)}" fill="${t.solceller}" />
+
+            <text x="${gx + colGroupW/2}" y="${chartY + chartH + 20}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1f1e1b">${d.month}</text>
+            <text x="${gx + colGroupW/2}" y="${chartY + chartH + 36}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#6b665e">Tab: ${fmt(d.lossTotal,1)}</text>
+            <text x="${gx + colGroupW/2}" y="${chartY + chartH + 49}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="${t.accent}">Netto: ${fmt(d.netHeat,1)}</text>
+          </g>
+        `;
+      }).join('\n');
+
+      return `
+        <svg id="mainPlancheSVG" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${H}" fill="#fcfbf9" />
+          <text x="${chartX - 10}" y="${chartY + 8}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#6b665e">${fmt(maxVal,1)} kWh/m²</text>
+          <text x="${chartX - 10}" y="${chartY + chartH/2}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#6b665e">${fmt(maxVal/2,1)} kWh/m²</text>
+          <text x="${chartX - 10}" y="${chartY + chartH}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#6b665e">0,0</text>
+          ${bars}
+          <text x="${chartX}" y="${H - 12}" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5c5952">
+            VENSTRE SØJLE PR. MÅNED: Rumvarmetab + Varmt brugsvand  //  HØJRE SØJLE PR. MÅNED: Intern varme + Passiv sol + Solfanger + Solceller (PV)
+          </text>
+        </svg>
+      `;
+    }
+
+    // ================= TAB 04: BR18 ENERGIRAMME & PRIMÆRENERGI WATERFALL SVG =================
+    function buildBR18WaterfallSVG(m) {
+      const t = m.theme;
+      const W = 1140;
+      const H = 480;
+
+      const grossDemand = m.qLossRoom + m.vbvTotalDemand + m.techElTotal;
+      const steps = [
+        { label: '01. Brutto Energibehov (Klimaskærm + VBV + Drift)', val: grossDemand, type: 'pos', col: t.lossTrans },
+        { label: '02. Fradrag: Udnyttet Passiv Solindfald', val: -m.solPassivUtil, type: 'sub', col: t.solPassiv },
+        { label: '03. Fradrag: Udnyttet Intern Varme (Pers./App.)', val: -m.intUtil, type: 'sub', col: t.intern },
+        { label: '04. Fradrag: Solfanger (VBV & Rumvarme)', val: -(m.solfangerToVBV + m.solfangerToRoom), type: 'sub', col: t.solfanger },
+        { label: '05. Fradrag: Varmepumpe Omgivelsesvarme', val: -m.ambientHeatGain, type: 'sub', col: t.solfanger },
+        { label: '06. Fradrag: Solceller (PV til bygningsdrift)', val: -m.pvSelfUsed, type: 'sub', col: t.solceller },
+        { label: '07. Primærenergi-vægtning (Faktor 0,85 / 1,90)', val: m.be18Result - (grossDemand - m.solPassivUtil - m.intUtil - m.solfangerToVBV - m.solfangerToRoom - m.ambientHeatGain - m.pvSelfUsed), type: 'adj', col: t.forsyningEl },
+        { label: '08. BE18 ENERGIRAMME RESULTAT', val: m.be18Result, type: 'final', col: m.be18Result <= m.br18Limit ? '#2b7a4b' : '#b83b2b' }
+      ];
+
+      const maxScale = Math.max(grossDemand * 1.1, m.br18Limit * 1.25, 45);
+      const startX = 330;
+      const barAreaW = 680;
+      let running = 0;
+
+      const rowsSVG = steps.map((s, idx) => {
+        const y = 38 + idx * 50;
+        let x0, w;
+        if (s.type === 'pos' || s.type === 'final') {
+          x0 = startX;
+          w = Math.max(3, (s.val / maxScale) * barAreaW);
+          if (s.type === 'pos') running = s.val;
+        } else {
+          const nextRunning = running + s.val;
+          const leftVal = Math.min(running, nextRunning);
+          const rightVal = Math.max(running, nextRunning);
+          x0 = startX + (leftVal / maxScale) * barAreaW;
+          w = Math.max(3, ((rightVal - leftVal) / maxScale) * barAreaW);
+          running = nextRunning;
+        }
+
+        const sign = s.val > 0 && s.type !== 'pos' && s.type !== 'final' ? '+' : '';
+        return `
+          <g>
+            <rect x="${startX}" y="${y}" width="${barAreaW}" height="32" fill="#f5f2eb" rx="2" />
+            <text x="${startX - 14}" y="${y + 20}" text-anchor="end" font-family="'Inter', sans-serif" font-size="11.5" font-weight="${s.type === 'final' ? '700' : '500'}" fill="#1f1e1b">${s.label}</text>
+            <rect x="${x0.toFixed(1)}" y="${y + 4}" width="${w.toFixed(1)}" height="24" rx="2" fill="${s.col}" />
+            <text x="${(x0 + w + 10).toFixed(1)}" y="${y + 20}" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1f1e1b">${sign}${fmt(s.val)} kWh/m²</text>
+          </g>
+        `;
+      }).join('\n');
+
+      const xBr18 = startX + (m.br18Limit / maxScale) * barAreaW;
+      const xLow  = startX + (m.lowEnergyLimit / maxScale) * barAreaW;
+
+      return `
+        <svg id="mainPlancheSVG" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${H}" fill="#fcfbf9" />
+          ${rowsSVG}
+
+          <!-- BR18 Grænselinje -->
+          <line x1="${xBr18.toFixed(1)}" y1="20" x2="${xBr18.toFixed(1)}" y2="${H - 25}" stroke="${t.accent}" stroke-width="2" stroke-dasharray="5,4" />
+          <text x="${xBr18.toFixed(1)}" y="15" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="${t.accent}">BR18 KRAV (${fmt(m.br18Limit)})</text>
+
+          <!-- Lavenergiklasse Grænselinje -->
+          <line x1="${xLow.toFixed(1)}" y1="20" x2="${xLow.toFixed(1)}" y2="${H - 25}" stroke="#2b7a4b" stroke-width="1.5" stroke-dasharray="3,3" />
+          <text x="${xLow.toFixed(1)}" y="${H - 10}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#2b7a4b">LAVENERGI (27,0)</text>
+        </svg>
+      `;
+    }
+
+    // ================= TAB 05: BE18 DATA-INSPEKTØR TABEL =================
+    function renderDataInspector(m) {
+      const rows = [
+        ['Passiv Solindfald (Vinduer, brutto)', 'Tilskud (Sol)', m.solPassiv, m.solPassiv * m.area, `Udnyttet (${fmt(m.eta*100,1)}%): ${fmt(m.solPassivUtil)} kWh/m²`],
+        ['Solfanger (Termisk solvarme)', 'Tilskud (Solvarme)', m.solfanger, m.solfanger * m.area, `VBV: ${fmt(m.solfangerToVBV)} // Rum: ${fmt(m.solfangerToRoom)} kWh/m²`],
+        ['Solceller (PV El-produktion)', 'Tilskud (Solceller)', m.solceller, m.solceller * m.area, `Egenforbrug: ${fmt(m.pvSelfUsed)} // Eksport: ${fmt(m.pvExported)} kWh/m²`],
+        ['Intern varme — Personer', 'Tilskud (Intern)', m.intPers, m.intPers * m.area, `Udnyttet andel: ${fmt(m.intPers * m.eta)} kWh/m²`],
+        ['Intern varme — Apparater & Belysning', 'Tilskud (Intern)', m.intApp, m.intApp * m.area, `Udnyttet andel: ${fmt(m.intApp * m.eta)} kWh/m²`],
+        ['Transmissionstab — Ydervægge, Tag & Terrændæk', 'Varmetab (Klimaskærm)', m.transOpak, m.transOpak * m.area, `${Math.round((m.transOpak/m.qLossRoom)*100)}% af rumvarmetab`],
+        ['Transmissionstab — Vinduer & Yderdøre', 'Varmetab (Klimaskærm)', m.transWin, m.transWin * m.area, `${Math.round((m.transWin/m.qLossRoom)*100)}% af rumvarmetab`],
+        ['Ventilationstab (Mekanisk m/ VGV)', 'Varmetab (Luftskifte)', m.vent, m.vent * m.area, `${Math.round((m.vent/m.qLossRoom)*100)}% af rumvarmetab`],
+        ['Infiltrationstab (Utætheder)', 'Varmetab (Luftskifte)', m.infil, m.infil * m.area, `${Math.round((m.infil/m.qLossRoom)*100)}% af rumvarmetab`],
+        ['Ikke-udnyttet sol & intern varme (Udluftet)', 'Overskudsvarme', m.qGainUnutilized + m.solfangerUnutil, (m.qGainUnutilized + m.solfangerUnutil) * m.area, `1 - η = ${fmt((1-m.eta)*100,1)}% (τ = ${m.tau} timer)`],
+        ['Varmt Brugsvand (Netto + Systemtab)', 'Brugsvand (VBV)', m.vbvTotalDemand, m.vbvTotalDemand * m.area, `Netto: ${fmt(m.vbvNetto)} // Cirk./Lager: ${fmt(m.sysLoss)} kWh/m²`],
+        ['Teknisk El-drift (Ventilatorer, Pumper, Lys)', 'Bygningsdrift (El)', m.techElTotal, m.techElTotal * m.area, `Primærenergifaktor El = 1,90`],
+        ['Netto Tilført Rumvarme + VBV (Forsyning)', 'Forsyningsbehov', m.totalThermalSupply, m.totalThermalSupply * m.area, m.supplyName],
+        ['BE18 SAMLET ENERGIRAMME RESULTAT', 'BR18 Myndighedskrav', m.be18Result, m.be18Result * m.area, `Krav ≤ ${fmt(m.br18Limit)} kWh/m² (${m.be18Result <= m.br18Limit ? 'GODKENDT' : 'OVERSKREDET'})`]
+      ];
+
+      document.getElementById('inspectorContainer').innerHTML = `
+        <table class="inspector-table">
+          <thead>
+            <tr>
+              <th>Be18 Energipost</th>
+              <th>Kategori</th>
+              <th>Specifik (kWh/m²/år)</th>
+              <th>Total (${m.area} m² — kWh/år)</th>
+              <th>Teknisk Bemærkning / Udnyttelse</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td style="font-weight:600;">${r[0]}</td>
+                <td>${r[1]}</td>
+                <td class="mono-num">${fmt(r[2], 1)}</td>
+                <td class="mono-num">${Math.round(r[3]).toLocaleString('da-DK')}</td>
+                <td style="color:var(--text-secondary);">${r[4]}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // ================= FIL-DROPZONE & UDKLIPSHOLDER PARSER =================
+    function openPasteModal() {
+      document.getElementById('pasteModal').classList.add('open');
+    }
+    function closePasteModal() {
+      document.getElementById('pasteModal').classList.remove('open');
+    }
+
+    function parseBe18String(rawText, fileName = 'Be18_Importeret_Fil') {
+      const txt = rawText.replace(/,/g, '.');
+      function extract(regex, fallback) {
+        const match = txt.match(regex);
+        return match && match[1] ? parseFloat(match[1]) : fallback;
+      }
+
+      const area = extract(/(?:areal|etageareal|area)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (area) document.getElementById('areaInput').value = area;
+
+      const solP = extract(/(?:solindfald|passiv\s*sol|q_sol)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (solP !== null) {
+        document.getElementById('rngSolPassiv').value = solP;
+        document.getElementById('lblSolPassiv').textContent = fmt(solP);
+      }
+
+      const solf = extract(/(?:solfanger|solvarme|solar\s*thermal)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (solf !== null) {
+        document.getElementById('rngSolfanger').value = solf;
+        document.getElementById('lblSolfanger').textContent = fmt(solf);
+      }
+
+      const pv = extract(/(?:solceller|pv|photovoltaic)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (pv !== null) {
+        document.getElementById('rngSolceller').value = pv;
+        document.getElementById('lblSolceller').textContent = fmt(pv);
+      }
+
+      const pers = extract(/(?:personer|people|occupants)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (pers !== null) document.getElementById('inIntPers').value = pers;
+
+      const app = extract(/(?:apparater|udstyr|equipment)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (app !== null) document.getElementById('inIntApp').value = app;
+
+      const trans = extract(/(?:transmission|vægge|klimaskærm)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (trans !== null) document.getElementById('inTransOpak').value = trans;
+
+      const win = extract(/(?:vinduer|windows|glas)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (win !== null) document.getElementById('inTransWin').value = win;
+
+      const vent = extract(/(?:ventilation)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (vent !== null) document.getElementById('inVent').value = vent;
+
+      const infil = extract(/(?:infiltration|utæthed)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (infil !== null) document.getElementById('inInfil').value = infil;
+
+      const vbv = extract(/(?:brugsvand|vbv|dhw)[^\d]*(\d+(?:\.\d+)?)/i, null);
+      if (vbv !== null) document.getElementById('inVBV').value = vbv;
+
+      currentZoneName = fileName.replace(/\.[^/.]+$/, '');
+      document.getElementById('pillZoneName').textContent = currentZoneName;
+      updateModel();
+    }
+
+    function parsePastedText() {
+      const val = document.getElementById('pasteTextarea').value;
+      if (val.trim()) {
+        parseBe18String(val, 'Udklipsholder_Be18');
+      }
+      closePasteModal();
+    }
+
+    // Drag & Drop events
+    const dz = document.getElementById('dropzone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault();
+      dz.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) readBe18File(file);
+    });
+    document.getElementById('fileInput').addEventListener('change', e => {
+      if (e.target.files[0]) readBe18File(e.target.files[0]);
+    });
+
+    function readBe18File(file) {
+      const reader = new FileReader();
+      reader.onload = ev => parseBe18String(ev.target.result, file.name);
+      reader.readAsText(file);
+    }
+
+    // ================= EKSPORT AF PLANCHE (SVG & PNG) =================
+    function exportSVG() {
+      const svgEl = document.getElementById('mainPlancheSVG');
+      if (!svgEl) return;
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svgEl);
+      if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentZoneName}_Be18_Sankey_Planche.svg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportPNG() {
+      const svgEl = document.getElementById('mainPlancheSVG');
+      if (!svgEl) return;
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svgEl);
+      const img = new Image();
+      const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = 2280; // Høj opløsning (2x skala til præsentationsplanche)
+        canvas.height = Math.round(2280 * (svgEl.viewBox.baseVal.height / svgEl.viewBox.baseVal.width));
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fcfbf9';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        const a = document.createElement('a');
+        a.download = `${currentZoneName}_Be18_Planche_300DPI.png`;
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      };
+      img.src = url;
+    }
+
+    // Initialiser ved opstart
+    window.addEventListener('DOMContentLoaded', () => {
+      updateModel();
+    });
+  </script>
+</body>
+</html>
