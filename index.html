@@ -446,13 +446,74 @@
     .swatch-box { width: 22px; height: 9px; border-radius: 1.5px; }
 
     /* Inspector Tables */
+    .inspector-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      position: sticky;
+      top: -12px;
+      z-index: 4;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .inspector-jump {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 4px;
+      border: 1px solid var(--border-input);
+      background: var(--bg-canvas);
+      color: var(--text-main);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .inspector-jump:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .inspector-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 10px 0 6px 0;
+    }
+    @media (max-width: 1100px) { .inspector-summary-grid { grid-template-columns: repeat(2, 1fr); } }
+    .inspector-sum-card {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-light);
+      border-radius: 5px;
+      padding: 10px 12px;
+    }
+    .inspector-sum-kicker {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .inspector-sum-val {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .inspector-sum-sub {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
     .inspector-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
       margin-top: 10px;
     }
-    @media (max-width: 1050px) { .inspector-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1200px) { .inspector-grid { grid-template-columns: 1fr; } }
 
     .inspector-section-title {
       font-family: var(--font-mono);
@@ -460,7 +521,7 @@
       font-weight: 700;
       color: var(--accent);
       text-transform: uppercase;
-      margin: 14px 0 6px 0;
+      margin: 16px 0 6px 0;
       padding-bottom: 4px;
       border-bottom: 1px solid var(--border-input);
     }
@@ -479,13 +540,24 @@
       background-color: var(--bg-muted);
       color: var(--text-secondary);
       border-bottom: 1px solid var(--border-input);
+      white-space: nowrap;
     }
     .inspector-table td {
       padding: 6px 9px;
       border-bottom: 1px solid var(--border-light);
       color: var(--text-main);
+      vertical-align: top;
     }
-    .mono-num { font-family: var(--font-mono); font-weight: 600; }
+    .inspector-table tr.row-inactive td {
+      color: var(--text-muted);
+      background-color: #faf9f6;
+    }
+    .mono-num { font-family: var(--font-mono); font-weight: 600; white-space: nowrap; }
+    .ro-unit-card.inactive-unit {
+      opacity: 0.62;
+      border-left-color: #b5afa4;
+      background: #f8f7f3;
+    }
 
     /* ================= TAB 05: TEKNOLOGISK INSTITUT & EKSTRA SOLCELLER ================= */
     .ti-workspace { display: flex; flex-direction: column; gap: 22px; }
@@ -628,50 +700,54 @@
       </div>
       <input type="file" id="fileInput" accept=".bexml,.xml,.be18" style="display:none" />
       <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-        <div class="dropzone-title">Træk .bexml fil hertil (f.eks. Ny Be18.bexml)</div>
-        <div class="dropzone-sub">Alle nøgletal, energiramme, solceller, solfanger &amp; varmepumpe beregnes 100% automatisk fra filen</div>
+        <div class="dropzone-title">Træk .bexml fil hertil (f.eks. Ny Be18 - Kopi.bexml)</div>
+        <div class="dropzone-sub">Månedsberegning efter SBi 213 &amp; BR18 ud fra filens konstruktioner, skygger &amp; anlæg</div>
       </div>
       <div id="importStatusToast" class="status-toast"></div>
       <div class="btn-row-2">
-        <button class="btn-secondary" onclick="loadDefaultNyBe18()">Indlæs Ny Be18.bexml</button>
+        <button class="btn-secondary" onclick="loadDefaultNyBe18()">Ny Be18 (Baseline)</button>
         <button class="btn-secondary" onclick="loadDefaultProjektet()">Indlæs Projektet.bexml</button>
       </div>
     </div>
 
-    <!-- 02 // BE18 NØGLETAL (1:1 RESULTATOVERSIGT) -->
+    <!-- 02 // BE18 NØGLETAL (MÅNEDSBASERET SBI 213 RESULTAT) -->
     <div class="section-block">
       <div class="section-header">
         <span>02 // BE18 NØGLETAL (KWH/M² ÅR)</span>
-        <span class="lock-tag active-tag">BE18 FACIT</span>
+        <span class="lock-tag active-tag">SBI 213 MÅNED</span>
       </div>
       <div class="bexml-summary-card">
         <div class="bexml-row">
           <span class="bexml-row-label">Energiramme BR 2018 (Krav):</span>
-          <span class="bexml-row-val" id="roRammeKrav">38,7 kWh/m²</span>
+          <span class="bexml-row-val" id="roRammeKrav">—</span>
         </div>
         <div class="bexml-row">
           <span class="bexml-row-label"><strong>Samlet energibehov (BR18):</strong></span>
-          <span class="bexml-row-val" style="color:var(--pv-green); font-size:11.5px;" id="roSamletBehov">0,3 kWh/m²</span>
+          <span class="bexml-row-val" style="color:var(--pv-green); font-size:11.5px;" id="roSamletBehov">—</span>
         </div>
         <div class="bexml-row">
-          <span class="bexml-row-label">Bidrag (Varme // El til drift):</span>
-          <span class="bexml-row-val" id="roBidrag">1,5 // -0,5 kWh/m²</span>
+          <span class="bexml-row-label">Bidrag (Varme // Netto el):</span>
+          <span class="bexml-row-val" id="roBidrag">—</span>
         </div>
         <div class="bexml-row">
           <span class="bexml-row-label">Netto behov (Rumvarme // VBV):</span>
-          <span class="bexml-row-val" id="roNettoBehov">20,2 // 14,7 kWh/m²</span>
+          <span class="bexml-row-val" id="roNettoBehov">—</span>
         </div>
         <div class="bexml-row">
           <span class="bexml-row-label">Varmetab fra inst. (Rum // VBV):</span>
-          <span class="bexml-row-val" id="roInstTab">0,0 // 1,6 kWh/m²</span>
+          <span class="bexml-row-val" id="roInstTab">—</span>
         </div>
         <div class="bexml-row">
-          <span class="bexml-row-label">Særlige kilder (VP / Solvarme / PV):</span>
-          <span class="bexml-row-val" id="roSaerlige">25,2 / 9,7 / 9,8 kWh/m²</span>
+          <span class="bexml-row-label">Særlige kilder (VP / Solv. / PV):</span>
+          <span class="bexml-row-val" id="roSaerlige">—</span>
         </div>
         <div class="bexml-row">
-          <span class="bexml-row-label">Udvalgte elbehov (VP // Pumper):</span>
-          <span class="bexml-row-val" id="roElBehov">7,4 // 1,2 kWh/m²</span>
+          <span class="bexml-row-label">Elbehov (VP // Pumper+Vent):</span>
+          <span class="bexml-row-val" id="roElBehov">—</span>
+        </div>
+        <div class="bexml-row">
+          <span class="bexml-row-label">PV fysisk (Eget / Eksport / Køb):</span>
+          <span class="bexml-row-val" id="roPvPhysical">—</span>
         </div>
       </div>
     </div>
@@ -685,23 +761,23 @@
       <div class="bexml-summary-card">
         <div class="bexml-row">
           <span class="bexml-row-label">Bygningsnavn / Areal:</span>
-          <span class="bexml-row-val" id="roModelId">Existing building // 115 m²</span>
+          <span class="bexml-row-val" id="roModelId">—</span>
         </div>
         <div class="bexml-row">
           <span class="bexml-row-label">Varmekapacitet / Rotation:</span>
-          <span class="bexml-row-val" id="roHeatCap">81 Wh/K·m² // 34° rotation</span>
+          <span class="bexml-row-val" id="roHeatCap">—</span>
         </div>
         <div class="bexml-row">
           <span class="bexml-row-label">Aktiv Hovedforsyning:</span>
-          <span class="bexml-row-val" id="roBasicSupply">Jordvarmepumpe (Kombineret)</span>
+          <span class="bexml-row-val" id="roBasicSupply">—</span>
         </div>
         <div class="bexml-row">
           <span class="bexml-row-label">Varmepumpe (Rum / VBV):</span>
-          <span class="bexml-row-val" id="roHeatPump">2,7 kW (COP 3,7) / 3,3 kW (COP 3,7)</span>
+          <span class="bexml-row-val" id="roHeatPump">—</span>
         </div>
         <div class="bexml-row">
           <span class="bexml-row-label">Varmefordeling &amp; VBV:</span>
-          <span class="bexml-row-val" id="roHeatDist">45°/30°C, 25W pumpe, 180L tank</span>
+          <span class="bexml-row-val" id="roHeatDist">—</span>
         </div>
       </div>
     </div>
@@ -761,34 +837,34 @@
       <!-- KPI STRIP -->
       <div class="kpi-strip">
         <div class="kpi-item">
-          <div class="kpi-label" id="kpiLabelRamme">ENERGIRAMME BR 2018 (KRAV ≤ 38,7)</div>
+          <div class="kpi-label" id="kpiLabelRamme">ENERGIRAMME BR 2018</div>
           <div class="kpi-val-row">
-            <span class="kpi-value" id="kpiValRamme">0,3 kWh/m²</span>
-            <span class="kpi-badge ok" id="kpiBadgeRamme">LAVENERGI OK</span>
+            <span class="kpi-value" id="kpiValRamme">—</span>
+            <span class="kpi-badge neutral" id="kpiBadgeRamme">—</span>
           </div>
         </div>
 
         <div class="kpi-item">
           <div class="kpi-label">NETTO VARMEBEHOV (RUM // VBV)</div>
           <div class="kpi-val-row">
-            <span class="kpi-value" id="kpiValNetto">20,2 // 14,7</span>
+            <span class="kpi-value" id="kpiValNetto">—</span>
             <span class="kpi-badge neutral" id="kpiBadgeNetto">kWh/m² år</span>
           </div>
         </div>
 
         <div class="kpi-item">
-          <div class="kpi-label">VARMEPUMPE YDELSE (RUM + VBV)</div>
+          <div class="kpi-label" id="kpiLabelSupply">VARMEPUMPE YDELSE (RUM + VBV)</div>
           <div class="kpi-val-row">
-            <span class="kpi-value" id="kpiValSupply">25,2 kWh/m²</span>
-            <span class="kpi-badge neutral" id="kpiBadgeSupply">EL: 7,4 KWH/M²</span>
+            <span class="kpi-value" id="kpiValSupply">—</span>
+            <span class="kpi-badge neutral" id="kpiBadgeSupply">—</span>
           </div>
         </div>
 
         <div class="kpi-item">
           <div class="kpi-label">SOLCELLER &amp; SOLVARME (YDELSE)</div>
           <div class="kpi-val-row">
-            <span class="kpi-value" id="kpiValTilskud">PV: 9,8 // Solv: 9,7</span>
-            <span class="kpi-badge ok" id="kpiBadgeTilskud">13 m² PV + 6 m² Solf.</span>
+            <span class="kpi-value" id="kpiValTilskud">—</span>
+            <span class="kpi-badge ok" id="kpiBadgeTilskud">—</span>
           </div>
         </div>
 
@@ -1059,7 +1135,7 @@
 	<HEATER_GAS rid="#25"><id>Gasvandvarmer</id><sfb></sfb><dhw_frac>0</dhw_frac><heat_loss>1.5</heat_loss><b>0.7</b><ny>0.8</ny><pilot_flame>50</pilot_flame></HEATER_GAS>
 	<DHW_SYSTEM rid="#24"><id>Beholder med varmespiral</id><sfb></sfb><consumption>250</consumption><temp>55</temp><has_dhw_tank>#44</has_dhw_tank><old_hot_water>$</old_hot_water></DHW_SYSTEM>
 	<DHW_TANK rid="#44"><id>VBV Beholder</id><sfb></sfb><no>1</no><vol>180</vol><outlet_temp>60</outlet_temp><heat_loss>1.2</heat_loss><b>0</b><solar_heat>.T.</solar_heat><dhw_part>1</dhw_part><eff>6</eff><p>0</p><reg>.T.</reg><has_el_heat>.DHW_A.</has_el_heat><has_dhw_pipe>#45</has_dhw_pipe><has_dhw_pump_circ>#46</has_dhw_pump_circ></DHW_TANK>
-	<DHW_PIPE rid="#45"><id>Rør mellem VP inde- og udedel</id><sfb></sfb><tube_name>Varmerør 3/4''</tube_name><tube_len>8</tube_len><tube_psi>0.05</tube_psi><tube_b>0</tube_b><part>0</part></DHW_PIPE>
+	<DHW_PIPE rid="#45"><id>Rør mellem VP inde- og -udedel</id><sfb></sfb><tube_name>Varmerør 3/4''</tube_name><tube_len>8</tube_len><tube_psi>0.05</tube_psi><tube_b>0</tube_b><part>0</part></DHW_PIPE>
 	<DHW_PUMP_CIRC rid="#46"><id>PumpCirc</id><sfb></sfb><r_fac>0</r_fac><n_cp>0</n_cp><p_eff>0</p_eff><n_cp2>0</n_cp2><p_eff2>0</p_eff2><el_tracing>.F.</el_tracing><has_tube></has_tube></DHW_PUMP_CIRC>
 	<HEATED_ROOM rid="#27"><id>Heated room</id><area>55</area><vent_day>3.6</vent_day><vent_evening>3.6</vent_evening><vent_night>0.6</vent_night><vent_basic>0.3</vent_basic></HEATED_ROOM>
 	<TRANSP_CONSTR rid="#3"><id>South West</id><area>1.45</area><u>0.8</u><part>0</part><td_in></td_in><td_out></td_out><sfb></sfb><has_b>1</has_b><no>1</no><orient>sv</orient><slope>90</slope><ff>0.42</ff><g>0.63</g><fc>1</fc><ot>.F.</ot><has_shading>#47</has_shading></TRANSP_CONSTR>
@@ -1078,7 +1154,7 @@
 	<LIGHT_LOAD rid="#52"><id></id><sfb></sfb><gen_min>3</gen_min><gen_max>10</gen_max><light>200</light><df>0</df><fo>1</fo><work>2</work><other>0</other><stand_by>0</stand_by><night>0</night><area>0</area><part>0</part><has_reg>.M.</has_reg></LIGHT_LOAD>
 	<HEAT_TUBE rid="#43"><id></id><sfb></sfb><len>0</len><psi>0</psi><b>0</b><part>0</part><outdoor_comp>.T.</outdoor_comp><closed_summer>.T.</closed_summer></HEAT_TUBE>
 	<TRANSP_CONSTR rid="#9"><id>Ovenlys</id><area>0</area><u>0.8</u><part>0</part><td_in></td_in><td_out></td_out><sfb></sfb><has_b>1</has_b><no>1</no><orient>nv</orient><slope>90</slope><ff>0.75</ff><g>0.63</g><fc>1</fc><ot>.F.</ot><has_shading>$</has_shading></TRANSP_CONSTR>
-	<PV_CELL rid="#30"><id>NV</id><sfb></sfb><area>6.5</area><orient>NV</orient><slope>20</slope><horizon>10</horizon><peak_power>0.105</peak_power><efficiency>0.85</efficiency><sidefin_left>0</sidefin_left><sidefin_right>0</sidefin_right></PV_CELL>
+	<PV_CELL rid="#30"><id>NV</id><sfb></sfb><area>0</area><orient>NV</orient><slope>20</slope><horizon>10</horizon><peak_power>0.105</peak_power><efficiency>0.85</efficiency><sidefin_left>0</sidefin_left><sidefin_right>0</sidefin_right></PV_CELL>
 	<VENTILATION rid="#15"><id>Køkken</id><sfb></sfb><area>5.3</area><qvm>1.33</qvm><nvgv>0.82</nvgv><tin>18</tin><el_vf>.F.</el_vf><qid>0.1</qid><qis>0</qis><sel>0.8</sel><qvm_day>1.33</qvm_day><qid_day>1.2</qid_day><qvm_night>0</qvm_night><qis_night>0</qis_night><part>0</part><fo>0</fo></VENTILATION>
 	<VENTILATION rid="#16"><id>Toilet</id><sfb></sfb><area>5.3</area><qvm>2.14</qvm><nvgv>0.82</nvgv><tin>18</tin><el_vf>.F.</el_vf><qid>0.1</qid><qis>0</qis><sel>0.8</sel><qvm_day>1.33</qvm_day><qid_day>0.6</qid_day><qvm_night>0</qvm_night><qis_night>0</qis_night><part>0</part><fo>0</fo></VENTILATION>
 </BE05>`;
@@ -1205,6 +1281,10 @@
     };
 
     const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAJ', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
+    const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const MONTH_HOURS = MONTH_DAYS.map(d => d * 24);
+    // Dansk referenceår (DRY / SBi 213) månedlige udelufttemperaturer (°C) og solindstrålingsvægte
+    const T_OUT_DK = [-0.5, -0.5, 2.0, 6.2, 11.1, 14.3, 16.4, 16.2, 13.0, 9.0, 4.6, 1.4];
     const SOLAR_WEIGHTS = [0.018, 0.038, 0.082, 0.130, 0.162, 0.165, 0.155, 0.122, 0.072, 0.034, 0.013, 0.009];
     const LOSS_WEIGHTS  = [0.155, 0.138, 0.122, 0.085, 0.048, 0.020, 0.012, 0.015, 0.045, 0.088, 0.125, 0.147];
 
@@ -1225,7 +1305,10 @@
     let BEXML_DATA = null;
     let MODEL = {};
 
-    const fmt = (n, d = 1) => Number(n || 0).toFixed(d).replace('.', ',');
+    const fmt = (n, d = 1) => {
+      const v = Number(n);
+      return (Number.isFinite(v) ? v : 0).toFixed(d).replace('.', ',');
+    };
 
     // Beregn afvigelse fra Syd (0°..180°) inkl. bygningens <rotation> i BEXML
     function getAzimuthFromSouth(orientStr, buildingRotationDeg = 0) {
@@ -1382,14 +1465,15 @@
 
         const irrad = calcTiltedIrradiationDK(orientRaw, slope, 0, rotation);
         const glazeArea = area * no * ff;
-        const qSolKwh = glazeArea * g * fc * fShade * irrad * 0.90;
+        const qSolUnshaded = glazeArea * g * fc * irrad * 0.90;
+        const qSolKwh = qSolUnshaded * fShade;
         const ua = area * no * u * b;
 
         return {
           id: getTagText(el, 'id', 'Vindue/Ovenlys'),
           area: area * no,
           u, b, no, orient: orientRaw.toUpperCase(), slope, ff, g, fc,
-          shading, fShade, irrad, qSolKwh, ua
+          shading, fShade, irrad, qSolUnshaded, qSolKwh, ua
         };
       });
 
@@ -1406,9 +1490,9 @@
         const qid_day = getTagNum(el, 'qid_day', 0);
         const fo = getTagNum(el, 'fo', 1);
 
-        // Kun aktiv hvis fo > 0
+        // Kun aktiv hvis fo > 0; sel (SFP i kJ/m³ = W/(l/s)) afhænger ikke af el_vf (varmeflade)
         const hVeZone = fo * (qid + qvm * (1 - nvgv)) * zArea * 1.21;
-        const fanElKwhYear = (fo > 0 && el_vf && sel > 0) ? (fo * (qvm * zArea * sel * 8.76) / 1000) : 0;
+        const fanElKwhYear = (fo > 0 && qvm > 0 && sel > 0) ? (fo * (qvm * zArea * sel * 8.76)) : 0;
         return {
           id: getTagText(el, 'id', 'Ventilationszone'),
           area: zArea, qvm, nvgv, tin, el_vf, qid, sel, qvm_day, qid_day, fo,
@@ -1503,16 +1587,16 @@
       } : { id: 'Ingen kedel', nom_eff: 0, full_ngn: 1, part_ngn: 1, auto_stb: 0, has_fuel: '-' };
 
       const exchEl = doc.getElementsByTagName('D_H_EXCH')[0];
-      const dhExch = {
+      const dhExch = exchEl ? {
         id: getTagText(exchEl, 'id', 'Fjernvarmeveksler'),
         nom_eff: getTagNum(exchEl, 'nom_eff', 0),
         heat_loss: getTagNum(exchEl, 'heat_loss', 1.5),
         auto_stb: getTagNum(exchEl, 'auto_stb', 5)
-      };
+      } : { id: 'Fjernvarmeveksler', nom_eff: 0, heat_loss: 0, auto_stb: 0 };
 
       const hpEl = doc.getElementsByTagName('HEAT_PUMP')[0];
-      const vpRoomEl = ridMap[getTagText(hpEl, 'room_heating', '#34')];
-      const vpDhwEl = ridMap[getTagText(hpEl, 'dhw', '#35')];
+      const vpRoomEl = hpEl ? ridMap[getTagText(hpEl, 'room_heating', '#34')] : null;
+      const vpDhwEl = hpEl ? ridMap[getTagText(hpEl, 'dhw', '#35')] : null;
       const heatPump = {
         id: getTagText(hpEl, 'id', 'Varmepumpe'),
         a_frac: getTagNum(hpEl, 'a_frac', 1),
@@ -1524,7 +1608,7 @@
           temp_cold: getTagNum(vpRoomEl, 'temp_cold', 0),
           temp_warm: getTagNum(vpRoomEl, 'temp_warm', 43),
           equip: getTagNum(vpRoomEl, 'equip', 0),
-          auto_stb: getTagNum(vpRoomEl, 'auto_stb', 5),
+          auto_stb: getTagNum(vpRoomEl, 'auto_stb', 0),
           type_cold: getTagText(vpRoomEl, 'has_type_cold', '.VP_J.')
         },
         dhw: {
@@ -1534,6 +1618,7 @@
           temp_cold: getTagNum(vpDhwEl, 'temp_cold', 0),
           temp_warm: getTagNum(vpDhwEl, 'temp_warm', 43),
           equip: getTagNum(vpDhwEl, 'equip', 0),
+          auto_stb: getTagNum(vpDhwEl, 'auto_stb', 0),
           air_flow: getTagNum(vpDhwEl, 'air_flow', 0.09)
         }
       };
@@ -1587,8 +1672,10 @@
         const ny_loop = getTagNum(el, 'ny_loop', 0.8);
         const heat_loss_coef = getTagNum(el, 'heat_loss_coef', 3.5);
         const tube_length = getTagNum(el, 'tube_length', 10);
+        const heat_loss = getTagNum(el, 'heat_loss', 0.17);
         const pump = getTagNum(el, 'pump', 45);
         const stand_by = getTagNum(el, 'stand_by', 5);
+        const has_type = getTagText(el, 'has_type', '.B_TYPE.');
 
         const irradM2 = calcTiltedIrradiationDK(orient, slope, horizon, rotation);
         const activeAreaM2 = flags.solarpanel ? area : 0;
@@ -1605,8 +1692,10 @@
           ny_loop,
           heat_loss_coef,
           tube_length,
+          heat_loss,
           pump,
           stand_by,
+          has_type,
           irradM2
         };
       });
@@ -1631,17 +1720,17 @@
     }
 
     function loadDefaultNyBe18() {
-      parseBexml(NY_BE18_BEXML, 'Ny Be18.bexml');
+      parseBexml(NY_BE18_BEXML, 'Ny Be18 - Kopi.bexml');
       const toast = document.getElementById('importStatusToast');
       toast.style.display = 'block';
-      toast.innerHTML = `✓ <strong>Ny Be18.bexml</strong> indlæst 1:1 (Energiramme: <strong>0,3 kWh/m²</strong> · Varmepumpe: 25,2 · Solvarme: 9,7 · Solceller: 9,8 kWh/m²).`;
+      toast.innerHTML = `✓ <strong>Ny Be18 - Kopi.bexml</strong> (Baseline) indlæst · Energiramme: <strong>${fmt(MODEL.totalPrimaryEnergy)} kWh/m²</strong> · Rumvarme: ${fmt(MODEL.netSpaceHeatDemand)} · VP: ${fmt(MODEL.hpYieldTotal)} · Solvarme: ${fmt(MODEL.utilizedSolfanger)} · Solceller: ${fmt(MODEL.solceller)} kWh/m².`;
     }
 
     function loadDefaultProjektet() {
       parseBexml(PROJEKTET_BEXML, 'Projektet.bexml');
       const toast = document.getElementById('importStatusToast');
       toast.style.display = 'block';
-      toast.innerHTML = `✓ <strong>Projektet.bexml</strong> indlæst 1:1 (Fjernvarme · Solceller og solfanger slået fra i fil = 0,0 m²).`;
+      toast.innerHTML = `✓ <strong>Projektet.bexml</strong> indlæst · Energiramme: <strong>${fmt(MODEL.totalPrimaryEnergy)} kWh/m²</strong> · Fjernvarme (Rumvarme: ${fmt(MODEL.netSpaceHeatDemand)} · VBV: ${fmt(MODEL.totalDHWGross)} · Solceller &amp; solfanger: 0,0 m² aktive).`;
     }
 
     // ================= 4. TEKNOLOGISK INSTITUT BEREGNER FUNKTIONER =================
@@ -1669,7 +1758,7 @@
       syncTI('Area', reqM2);
     }
 
-    // ================= 5. HOVED-BEREGNINGSMOTOR (SBI 213 / BE18 1:1) =================
+    // ================= 5. HOVED-BEREGNINGSMOTOR (MÅNEDSBASERET SBI 213 / BE18) =================
     function updateModel() {
       if (!BEXML_DATA) return;
       const d = BEXML_DATA;
@@ -1688,182 +1777,263 @@
       });
 
       // 2) VARMT BRUGSVAND (VBV) & INSTALLATIONSTAB (SBi 213)
-      // Netto varmebehov til VBV: 250 l/m²/år ved 55°C svarer i SBi 213 præcis til 14,7 kWh/m²
+      // Netto varmebehov til VBV: 250 l/m²/år ved 55°C svarer i SBi 213 til 14,7 kWh/m²
       const netDHWDemandM2 = (d.dhw.consumption * (d.dhw.temp - 4.45) * 1.163) / 1000;
-      // VBV installationstab (beholder + rør mellem VP/beholder):
       const dhwPipeLossKwh = (d.dhw.tube_len * d.dhw.tube_psi * 30 * 5400) / 1000;
       const dhwTankLossNetKwh = d.dhw.heat_loss * (d.dhw.solar_heat ? 98 : 280);
-      const lossDHWInstM2 = (dhwTankLossNetKwh + dhwPipeLossKwh) / area;
+      const dhExchLossM2 = (!d.flags.heatpump && d.basic_heat_supply === '.SUP_DISTRICT.')
+        ? ((d.dhExch.heat_loss * 280) / area)
+        : 0;
+      const lossDHWInstM2 = (dhwTankLossNetKwh + dhwPipeLossKwh) / area + dhExchLossM2;
       const totalDHWGrossM2 = netDHWDemandM2 + lossDHWInstM2;
 
-      // 3) SOLFANGER (SOLAR_COLLECTOR) — DÆKKER KUN VARMT BRUGSVAND & BEHOLDERTAB
-      let totalSCAreaM2 = 0;
-      let rawSCPotentialM2 = 0;
-      const scCalculated = d.scUnits.map(u => {
-        totalSCAreaM2 += u.activeAreaM2;
-        // SBi 213 solvarmemodel for VBV-beholder:
-        const kwhPerM2Collector = u.irradM2 * u.ny0 * u.ny_loop * 0.254;
-        const kwhYear = u.activeAreaM2 * kwhPerM2Collector;
-        const kwhM2 = kwhYear / area;
-        rawSCPotentialM2 += kwhM2;
-        return {
-          ...u,
-          kwhYear,
-          kwhM2
-        };
-      });
-      // Solvarme kan højst dække VBV-behovet + beholdertabet i sommer/forår/efterår
-      const utilizedSolfanger = Math.min(rawSCPotentialM2, totalDHWGrossM2 * 0.72);
-      // Fordel faktisk nyttiggjort solvarme tilbage på solfanger-enhederne
-      scCalculated.forEach(u => {
-        const ratio = rawSCPotentialM2 > 0 ? (utilizedSolfanger / rawSCPotentialM2) : 0;
-        u.utilizedKwhM2 = u.kwhM2 * ratio;
-        u.utilizedKwhYear = u.utilizedKwhM2 * area;
-      });
-
-      // Rest-VBV som skal dækkes af Varmepumpe (VBV-del) eller Fjernvarme/Kedel
-      const remDHWDemandM2 = Math.max(0, totalDHWGrossM2 - utilizedSolfanger);
-
-      // 4) BYGNINGENS VARMETAB (RUMOPVARMNING: TRANSMISSION + VENTILATION + VARMERØR)
+      // 3) BYGNINGENS SPECIFIKKE VARMETAB (TRANSMISSION, VENTILATION, TIDSKONSTANT)
       const uaOpaque = d.opaqueList.reduce((acc, x) => acc + x.ua, 0);
       const uaColdBridge = d.coldBridgeList.reduce((acc, x) => acc + x.ua, 0);
       const uaWindows = d.windowList.reduce((acc, x) => acc + x.ua, 0);
       const hTrTotal = uaOpaque + uaColdBridge + uaWindows;
       const hVeTotal = d.ventList.reduce((acc, v) => acc + v.hVeZone, 0);
 
-      // Tidskonstant τ = (heat_cap * ae) / (H_tr + H_ve)
+      // Tidskonstant τ = (heat_cap * ae) / (H_tr + H_ve) og ISO 13790 a = 1.0 + τ / 15
       const tauHours = Math.round((d.heat_cap * area) / Math.max(1, hTrTotal + hVeTotal));
-
-      // Graddage inkl. himmelstrålingstab fra tag/facade i SBi 213 DRY (~100,2 kKh/år)
-      const degHoursKh = 100.2;
-      const lossTransM2 = (hTrTotal * degHoursKh) / area;
-      const lossVentM2 = (hVeTotal * degHoursKh) / area;
+      const aParam = 1.0 + (tauHours / 15.0);
 
       // Tab fra varmerør til rumopvarmning (HEAT_TUBE)
-      const avgTubeDeltaT = ((d.inletTemp + d.returnTemp) / 2 - 20) * (d.heatTube.outdoor_comp ? 0.62 : 1.0);
+      const avgTubeDeltaT = ((d.inletTemp + d.returnTemp) / 2 - d.th_heat) * (d.heatTube.outdoor_comp ? 0.62 : 1.0);
       const heatingHours = d.heatTube.closed_summer ? 5400 : 8760;
       const tubeLossTotalKwh = Math.max(0, (d.heatTube.len * d.heatTube.psi * avgTubeDeltaT * heatingHours) / 1000);
       const lossSpaceTubeM2 = (tubeLossTotalKwh * (1 - d.heatTube.b * 0.72)) / area;
 
-      const spaceHeatGrossM2 = lossTransM2 + lossVentM2 + lossSpaceTubeM2;
-
-      // 5) PASSIV SOL & INTERNE VARMELASTER (GÅR KUN TIL RUMOPVARMNING!)
+      // Passiv sol & intern last (årlige totaler)
       const qSolWindowsTotalKwh = d.windowList.reduce((acc, w) => acc + w.qSolKwh, 0);
       const solPassivM2 = qSolWindowsTotalKwh / area;
-
       const timeFactor = d.tb / 168;
       const internPersonM2 = d.usageLoad.ppers * 8.76 * timeFactor;
       const internApparatM2 = d.usageLoad.papp * 8.76 * timeFactor;
       const freeGainsTotalM2 = solPassivM2 + internPersonM2 + internApparatM2;
 
-      // DS/EN ISO 13790 udnyttelsesgrad η for rumopvarmning
-      const gamma = freeGainsTotalM2 / Math.max(1, spaceHeatGrossM2);
-      const aParam = 0.8 + (tauHours / 28.0);
-      let eta = 1.0;
-      if (Math.abs(gamma - 1.0) < 1e-4) {
-        eta = aParam / (aParam + 1.0);
-      } else {
-        eta = (1.0 - Math.pow(gamma, aParam)) / (1.0 - Math.pow(gamma, aParam + 1.0));
-      }
-      eta = Math.min(0.98, Math.max(0.15, eta));
+      // 4) SOLFANGER (MÅNEDLIG FYSISK MODEL MOD VBV-BEHOLDER)
+      let totalSCAreaM2 = 0;
+      const volFac = Math.min(1.15, Math.max(0.70, Math.pow(Math.max(50, d.dhw.vol) / 180.0, 0.25)));
+      const scUnitMonthlyRaw = d.scUnits.map(u => {
+        totalSCAreaM2 += u.activeAreaM2;
+        if (u.activeAreaM2 <= 0) return new Array(12).fill(0);
+        const uCol = u.heat_loss_coef + (u.tube_length * (u.heat_loss || 0.17)) / Math.max(0.5, u.activeAreaM2);
+        return MONTHS.map((_, i) => {
+          const iMonth = u.irradM2 * SOLAR_WEIGHTS[i];
+          const hOp = 2100.0 * (0.35 * (MONTH_DAYS[i] / 365.0) + 0.65 * SOLAR_WEIGHTS[i]);
+          const dTCol = Math.max(15.0, 44.0 - T_OUT_DK[i]);
+          const qOpt = iMonth * u.ny0 * u.ny_loop;
+          const qLoss = ((uCol * dTCol * hOp) / 1000.0) * u.ny_loop;
+          const qNetPanel = Math.max(0, qOpt - 0.65 * qLoss);
+          return (u.activeAreaM2 * qNetPanel) / area;
+        });
+      });
 
-      const utilizedSolPassiv = solPassivM2 * eta;
-      const utilizedInternPerson = internPersonM2 * eta;
-      const utilizedInternApparat = internApparatM2 * eta;
-      const utilizedFreeGains = utilizedSolPassiv + utilizedInternPerson + utilizedInternApparat;
-      const unutilizedFreeGains = Math.max(0, freeGainsTotalM2 - utilizedFreeGains);
+      // Vægte til fordeling af varmerør & pumper over året (fyringssæson = okt–apr)
+      const hsHoursTotal = MONTH_HOURS.reduce((acc, h, i) => acc + ((i <= 3 || i >= 9) ? h : 0), 0);
+      const tubeWeights = MONTH_HOURS.map((h, i) =>
+        d.heatTube.closed_summer
+          ? ((i <= 3 || i >= 9) ? h / hsHoursTotal : 0)
+          : (h / 8760.0)
+      );
 
-      // Netto behov Rumopvarmning (f.eks. 20,2 kWh/m² i Ny Be18.bexml)
-      const netSpaceHeatDemandM2 = Math.max(0, spaceHeatGrossM2 - utilizedFreeGains);
-
-      // 6) FORSYNINGSANLÆG: KOMBINERET VARMEPUMPE (OPDELT I RUMVARME & VBV) ELLER FJERNVARME/KEDEL
+      // 5) FORSYNINGS- & EL-PARAMETRE (VARMEPUMPE / FJERNVARME / KEDEL)
       let supplyName = 'Fjernvarme';
+      let hpRoomCoverageFrac = 0;
+      let hpDhwCoverageFrac = 0;
+      let spfRoom = 3.5;
+      let spfDHW = 3.4;
+      let hpStbElM2Year = 0;
+      let effBoil = 1.0;
+
+      if (d.flags.heatpump) {
+        supplyName = d.heatPump.id || 'Varmepumpe';
+        const dimPeakKw = ((hTrTotal + hVeTotal) * (d.th_heat - d.tu)) / 1000;
+        const capRatio = d.heatPump.room.nom_eff / Math.max(0.5, dimPeakKw);
+        hpRoomCoverageFrac = Math.min(1.0, d.heatPump.a_frac * (capRatio >= 1.25 ? 1.0 : Math.min(0.922, 0.78 + 0.12 * capRatio)));
+        hpDhwCoverageFrac = Math.min(1.0, d.heatPump.a_frac);
+        spfRoom = Math.max(1.0, (d.heatPump.room.nom_cop || 3.7) * 0.935);
+        spfDHW = Math.max(1.0, (d.heatPump.dhw.nom_cop || 3.7) * 0.925);
+        hpStbElM2Year = ((d.heatPump.room.auto_stb + d.heatPump.dhw.auto_stb) * 8.76) / area;
+      } else if (d.basic_heat_supply === '.SUP_DISTRICT.') {
+        supplyName = 'Fjernvarme';
+      } else {
+        supplyName = d.boiler.id || 'Naturgaskedel';
+        effBoil = Math.max(0.75, d.boiler.full_ngn);
+      }
+
+      const distPumpW = d.pumps.reduce((acc, p) => acc + p.pnom * p.fp * p.no, 0);
+      const distPumpElYearM2 = ((distPumpW * heatingHours) / 1000) / area;
+      const scPumpElYearM2 = totalSCAreaM2 > 0
+        ? (((d.scUnits[0]?.pump || 45) * 1050 + (d.scUnits[0]?.stand_by || 5) * 8760) / 1000) / area
+        : 0;
+      const fansElYearM2 = d.ventList.reduce((acc, v) => acc + v.fanElKwhYear, 0) / area;
+
+      // 6) MÅNED-FOR-MÅNED SBI 213 ENERGIBALANCE (JAN–DEC)
+      let lossTransM2 = 0;
+      let lossVentM2 = 0;
+      let utilizedSolPassiv = 0;
+      let utilizedInternPerson = 0;
+      let utilizedInternApparat = 0;
+      let netSpaceHeatDemandM2 = 0;
+      let utilizedSolfanger = 0;
+      const scUnitUtilTotals = new Array(d.scUnits.length).fill(0);
+      const scUnitRawTotals = new Array(d.scUnits.length).fill(0);
+
       let hpYieldRoomM2 = 0;
       let hpYieldDHWM2 = 0;
-      let hpYieldTotalM2 = 0;
       let backupHeatRoomM2 = 0;
       let backupHeatDHWM2 = 0;
       let hpElRoomM2 = 0;
       let hpElDHWM2 = 0;
-      let hpElTotalM2 = 0;
+      let pvSelfUsedM2 = 0;
+      let pvExportedM2 = 0;
+      let purchasedElM2 = 0;
 
-      if (d.flags.heatpump) {
-        supplyName = d.heatPump.id || 'Varmepumpe';
-        // Kapacitetsdækning ud fra nom_eff ift. dimensionerende spidslast ved Tu (-12°C)
-        const dimPeakKw = ((hTrTotal + hVeTotal) * (d.th_heat - d.tu)) / 1000;
-        const capRatio = d.heatPump.room.nom_eff / Math.max(0.5, dimPeakKw);
-        const hpRoomCoverageFrac = Math.min(1.0, d.heatPump.a_frac * (capRatio >= 1.25 ? 1.0 : Math.min(0.922, 0.78 + 0.12 * capRatio)));
+      const monthly = MONTHS.map((mName, i) => {
+        const hrs = MONTH_HOURS[i];
+        const dayFrac = MONTH_DAYS[i] / 365.0;
+        const dT = Math.max(0, d.th_heat - T_OUT_DK[i]);
 
-        hpYieldRoomM2 = netSpaceHeatDemandM2 * hpRoomCoverageFrac;
-        backupHeatRoomM2 = Math.max(0, netSpaceHeatDemandM2 - hpYieldRoomM2);
+        // Rumopvarmning: tab & gratisvarme
+        const mLossTrans = (hTrTotal * dT * hrs) / 1000.0 / area;
+        const mLossVent = (hVeTotal * dT * hrs) / 1000.0 / area;
+        const mLossTube = lossSpaceTubeM2 * tubeWeights[i];
+        const mSpaceLoss = mLossTrans + mLossVent + mLossTube;
 
-        hpYieldDHWM2 = remDHWDemandM2 * d.heatPump.a_frac;
-        backupHeatDHWM2 = Math.max(0, remDHWDemandM2 - hpYieldDHWM2);
+        const mSolPassiv = solPassivM2 * SOLAR_WEIGHTS[i];
+        const mInternPers = (d.usageLoad.ppers * timeFactor * hrs) / 1000.0;
+        const mInternApp = (d.usageLoad.papp * timeFactor * hrs) / 1000.0;
+        const mFreeGains = mSolPassiv + mInternPers + mInternApp;
 
-        hpYieldTotalM2 = hpYieldRoomM2 + hpYieldDHWM2;
+        const mGamma = mFreeGains / Math.max(1e-6, mSpaceLoss);
+        let mEta = 1.0;
+        if (Math.abs(mGamma - 1.0) < 1e-4) {
+          mEta = aParam / (aParam + 1.0);
+        } else {
+          mEta = (1.0 - Math.pow(mGamma, aParam)) / (1.0 - Math.pow(mGamma, aParam + 1.0));
+        }
+        mEta = Math.min(0.998, Math.max(0.05, mEta));
 
-        // SBi 213 årsvirkningsgrad (SPF) ud fra nom_cop og temperaturer + standby
-        const spfRoom = (d.heatPump.room.nom_cop || 3.7) * 0.935;
-        const spfDHW = (d.heatPump.dhw.nom_cop || 3.7) * 0.925;
-        const stbElM2 = ((d.heatPump.room.auto_stb + d.heatPump.dhw.auto_stb) * 8.76) / area;
+        const mUtilSol = mSolPassiv * mEta;
+        const mUtilPers = mInternPers * mEta;
+        const mUtilApp = mInternApp * mEta;
+        const mUtilGains = mUtilSol + mUtilPers + mUtilApp;
+        const mUnutilGains = Math.max(0, mFreeGains - mUtilGains);
+        const mNetSpace = Math.max(0, mSpaceLoss - mUtilGains);
 
-        hpElRoomM2 = (hpYieldRoomM2 / Math.max(1, spfRoom)) + stbElM2 * 0.75;
-        hpElDHWM2 = (hpYieldDHWM2 / Math.max(1, spfDHW)) + stbElM2 * 0.25;
-        hpElTotalM2 = hpElRoomM2 + hpElDHWM2;
-      } else if (d.basic_heat_supply === '.SUP_DISTRICT.') {
-        supplyName = 'Fjernvarme';
-        backupHeatRoomM2 = netSpaceHeatDemandM2;
-        backupHeatDHWM2 = remDHWDemandM2 + ((d.dhExch.heat_loss * 280) / area);
-      } else {
-        supplyName = 'Naturgaskedel';
-        const effBoil = Math.max(0.75, d.boiler.full_ngn);
-        backupHeatRoomM2 = netSpaceHeatDemandM2 / effBoil;
-        backupHeatDHWM2 = remDHWDemandM2 / effBoil;
-      }
+        // Varmt brugsvand (VBV) & Solfanger
+        const mDHWGross = totalDHWGrossM2 * dayFrac;
+        const mSCRaw = scUnitMonthlyRaw.reduce((acc, arr, idx) => {
+          scUnitRawTotals[idx] += arr[i];
+          return acc + arr[i];
+        }, 0);
+        const xSol = mSCRaw / Math.max(0.01, mDHWGross);
+        const fSol = mSCRaw > 0 ? Math.min(0.95, 1.0 - Math.exp(-0.85 * volFac * xSol)) : 0;
+        const mSolfanger = mDHWGross * fSol;
+        const mRemDHW = Math.max(0, mDHWGross - mSolfanger);
 
-      // 7) UDVALGTE ELBEHOV (PUMPER, VENTILATORER, VARMEPUMPE)
-      const distPumpW = d.pumps.reduce((acc, p) => acc + p.pnom * p.fp * p.no, 0);
-      const distPumpKwh = (distPumpW * heatingHours) / 1000;
-      const scPumpKwh = totalSCAreaM2 > 0
-        ? (((d.scUnits[0]?.pump || 45) * 1050 + (d.scUnits[0]?.stand_by || 5) * 8760) / 1000)
-        : 0;
-      const pumpsElM2 = (distPumpKwh + scPumpKwh) / area;
-      const fansElM2 = d.ventList.reduce((acc, v) => acc + v.fanElKwhYear, 0) / area;
+        if (mSCRaw > 0) {
+          scUnitMonthlyRaw.forEach((arr, idx) => {
+            scUnitUtilTotals[idx] += mSolfanger * (arr[i] / mSCRaw);
+          });
+        }
 
+        // Forsyningsvarme (VP vs Fjernvarme vs Kedel)
+        let mHpRoom = 0, mHpDHW = 0, mBackupRoom = 0, mBackupDHW = 0;
+        let mHpElRoom = 0, mHpElDHW = 0;
+
+        if (d.flags.heatpump) {
+          mHpRoom = mNetSpace * hpRoomCoverageFrac;
+          mBackupRoom = Math.max(0, mNetSpace - mHpRoom);
+          mHpDHW = mRemDHW * hpDhwCoverageFrac;
+          mBackupDHW = Math.max(0, mRemDHW - mHpDHW);
+          mHpElRoom = (mHpRoom / spfRoom) + hpStbElM2Year * 0.75 * dayFrac;
+          mHpElDHW = (mHpDHW / spfDHW) + hpStbElM2Year * 0.25 * dayFrac;
+        } else if (d.basic_heat_supply === '.SUP_DISTRICT.') {
+          mBackupRoom = mNetSpace;
+          mBackupDHW = mRemDHW;
+        } else {
+          mBackupRoom = mNetSpace / effBoil;
+          mBackupDHW = mRemDHW / effBoil;
+        }
+
+        const mHpEl = mHpElRoom + mHpElDHW;
+        const mPumpEl = distPumpElYearM2 * tubeWeights[i] + scPumpElYearM2 * SOLAR_WEIGHTS[i];
+        const mFanEl = fansElYearM2 * dayFrac;
+        const mTotalEl = mHpEl + mPumpEl + mFanEl;
+
+        const mPV = totalPVKwhM2 * SOLAR_WEIGHTS[i];
+        const mPVSelf = Math.min(mPV, mTotalEl);
+        const mPVExport = Math.max(0, mPV - mPVSelf);
+        const mGridBuy = Math.max(0, mTotalEl - mPVSelf);
+
+        // Summer til årstotaler
+        lossTransM2 += mLossTrans;
+        lossVentM2 += mLossVent;
+        utilizedSolPassiv += mUtilSol;
+        utilizedInternPerson += mUtilPers;
+        utilizedInternApparat += mUtilApp;
+        netSpaceHeatDemandM2 += mNetSpace;
+        utilizedSolfanger += mSolfanger;
+        hpYieldRoomM2 += mHpRoom;
+        hpYieldDHWM2 += mHpDHW;
+        backupHeatRoomM2 += mBackupRoom;
+        backupHeatDHWM2 += mBackupDHW;
+        hpElRoomM2 += mHpElRoom;
+        hpElDHWM2 += mHpElDHW;
+        pvSelfUsedM2 += mPVSelf;
+        pvExportedM2 += mPVExport;
+        purchasedElM2 += mGridBuy;
+
+        return {
+          month: mName,
+          tOut: T_OUT_DK[i],
+          mLossTrans, mLossVent, mLossTube, mSpaceLoss,
+          mSolPassiv, mInternPers, mInternApp, mFreeGains,
+          mGamma, mEta, mUtilSol, mUtilGains, mUnutilGains, mNetSpace,
+          mDHWGross, mSolfanger, mRemDHW,
+          mSupplyHeat: mHpRoom + mHpDHW + mBackupRoom + mBackupDHW,
+          mTotalHeatDemand: mSpaceLoss + mDHWGross,
+          mHpEl, mAuxEl: mPumpEl + mFanEl, mTotalEl,
+          mPV, mPVSelf, mPVExport, mGridBuy
+        };
+      });
+
+      const spaceHeatGrossM2 = lossTransM2 + lossVentM2 + lossSpaceTubeM2;
+      const utilizedFreeGains = utilizedSolPassiv + utilizedInternPerson + utilizedInternApparat;
+      const unutilizedFreeGains = Math.max(0, freeGainsTotalM2 - utilizedFreeGains);
+      const eta = freeGainsTotalM2 > 0 ? (utilizedFreeGains / freeGainsTotalM2) : 1.0;
+      const remDHWDemandM2 = Math.max(0, totalDHWGrossM2 - utilizedSolfanger);
+
+      const scCalculated = d.scUnits.map((u, idx) => ({
+        ...u,
+        kwhM2: scUnitRawTotals[idx],
+        kwhYear: scUnitRawTotals[idx] * area,
+        utilizedKwhM2: scUnitUtilTotals[idx],
+        utilizedKwhYear: scUnitUtilTotals[idx] * area
+      }));
+
+      const hpYieldTotalM2 = hpYieldRoomM2 + hpYieldDHWM2;
+      const hpElTotalM2 = hpElRoomM2 + hpElDHWM2;
+      const pumpsElM2 = distPumpElYearM2 + scPumpElYearM2;
+      const fansElM2 = fansElYearM2;
       const totalBuildingElM2 = hpElTotalM2 + pumpsElM2 + fansElM2;
 
-      // 8) SOLCELLE-FORDELING & BE18 ENERGIRAMME (BR 2018)
-      const pvSelfUsedM2 = Math.min(totalPVKwhM2, totalBuildingElM2);
-      const pvExportedM2 = Math.max(0, totalPVKwhM2 - pvSelfUsedM2);
-      const purchasedElM2 = Math.max(0, totalBuildingElM2 - pvSelfUsedM2);
-
-      // BR18 Bidrag til energibehovet:
-      // - Varme bidrag: backup/fjernvarme vægtet med 0,85 (eller 1,0 ved naturgas / spidslast)
-      const heatPrimaryFactor = d.flags.heatpump ? 0.95 : (d.basic_heat_supply === '.SUP_DISTRICT.' ? 0.85 : 1.0);
+      // 7) BE18 ENERGIRAMME (BR 2018)
+      // - Varme: Fjernvarme vægtes med 0,85, kedel/andet 1,0
+      const heatPrimaryFactor = d.basic_heat_supply === '.SUP_DISTRICT.' ? 0.85 : 1.0;
       const bidragVarmeM2 = (backupHeatRoomM2 + backupHeatDHWM2) * heatPrimaryFactor;
 
-      // - El til bygningsdrift (netto el efter solceller, hvor Be18 modregner solceller op til driftsel + rammeandel)
-      const rawNetElM2 = totalBuildingElM2 - totalPVKwhM2;
-      const bidragElDriftM2 = rawNetElM2 < 0 ? (rawNetElM2 * 0.42) : rawNetElM2;
-      const weightedElContributionM2 = rawNetElM2 < 0 ? (rawNetElM2 * 1.0) : (rawNetElM2 * 1.90);
+      // - El til bygningsdrift: El vægtes med 1,9; solceller kan modregnes op til 25 kWh/m² primærenergi (= 13,16 kWh/m² el)
+      const pvCreditCappedM2 = Math.min(totalPVKwhM2, 25.0 / 1.9);
+      const bidragElDriftM2 = totalBuildingElM2 - pvCreditCappedM2;
+      const weightedElContributionM2 = bidragElDriftM2 * 1.9;
 
       const limitBR18 = 30.0 + (1000.0 / area) + d.add_eframe;
       const limitLowEnergy = 27.0;
-      const totalPrimaryEnergy = bidragVarmeM2 + weightedElContributionM2;
-
-      // 9) MÅNEDLIG BALANCE (12 MDR)
-      const totalGrossHeatDemand = spaceHeatGrossM2 + totalDHWGrossM2;
-      const monthly = MONTHS.map((m, i) => {
-        const mLoss = totalGrossHeatDemand * LOSS_WEIGHTS[i];
-        const mSol = (solPassivM2 + utilizedSolfanger) * SOLAR_WEIGHTS[i];
-        const mInt = (internPersonM2 + internApparatM2) / 12.0;
-        const mPV = totalPVKwhM2 * SOLAR_WEIGHTS[i];
-        const mGains = mSol + mInt;
-        const mUtil = Math.min(mLoss * 0.92, mGains * eta);
-        const mUnutil = Math.max(0, mGains - mUtil);
-        const mNetSupply = Math.max(0, mLoss - mUtil);
-        return { month: m, mLoss, mSol, mInt, mPV, mUtil, mUnutil, mNetSupply };
-      });
+      const totalPrimaryEnergy = Math.max(0, bidragVarmeM2 + weightedElContributionM2);
 
       // 10) TEKNOLOGISK INSTITUT BEREGNER (FANE 05)
       const F7  = Math.max(0.1, parseFloat(document.getElementById('tiArea').value) || 12);
@@ -1937,13 +2107,14 @@
         totalPVAreaM2,
         totalPVKwp,
         totalSCAreaM2,
-        hTrTotal, hVeTotal, tauHours,
+        hTrTotal, hVeTotal, tauHours, aParam,
         lossTrans: lossTransM2,
         lossVent: lossVentM2,
         lossSpaceTube: lossSpaceTubeM2,
         spaceHeatGross: spaceHeatGrossM2,
         netSpaceHeatDemand: netSpaceHeatDemandM2,
         netDHWDemand: netDHWDemandM2,
+        dhExchLoss: dhExchLossM2,
         lossDHWInst: lossDHWInstM2,
         totalDHWGross: totalDHWGrossM2,
         remDHWDemand: remDHWDemandM2,
@@ -1975,6 +2146,7 @@
         purchasedEl: purchasedElM2,
         bidragVarme: bidragVarmeM2,
         bidragElDrift: bidragElDriftM2,
+        weightedElContribution: weightedElContributionM2,
         totalPrimaryEnergy,
         limitBR18,
         limitLowEnergy,
@@ -1994,14 +2166,17 @@
       const m = MODEL;
       const d = m.bexml;
 
-      // Sidebar 02: Be18 Nøgletal (1:1 som i Be18 Nøgletal-vinduet)
+      // Sidebar 02: Be18 Nøgletal (Månedsbaseret SBi 213)
       document.getElementById('roRammeKrav').textContent = `${fmt(m.limitBR18)} kWh/m²`;
-      document.getElementById('roSamletBehov').textContent = `${fmt(m.totalPrimaryEnergy)} kWh/m²`;
+      const samletEl = document.getElementById('roSamletBehov');
+      samletEl.textContent = `${fmt(m.totalPrimaryEnergy)} kWh/m²`;
+      samletEl.style.color = m.totalPrimaryEnergy <= m.limitBR18 ? 'var(--pv-green)' : '#b8332a';
       document.getElementById('roBidrag').textContent = `${fmt(m.bidragVarme)} // ${fmt(m.bidragElDrift)} kWh/m²`;
       document.getElementById('roNettoBehov').textContent = `${fmt(m.netSpaceHeatDemand)} // ${fmt(m.netDHWDemand)} kWh/m²`;
       document.getElementById('roInstTab').textContent = `${fmt(m.lossSpaceTube)} // ${fmt(m.lossDHWInst)} kWh/m²`;
       document.getElementById('roSaerlige').textContent = `${fmt(m.hpYieldTotal)} / ${fmt(m.utilizedSolfanger)} / ${fmt(m.solceller)} kWh/m²`;
-      document.getElementById('roElBehov').textContent = `${fmt(m.hpElTotal)} // ${fmt(m.pumpsEl)} kWh/m²`;
+      document.getElementById('roElBehov').textContent = `${fmt(m.hpElTotal)} // ${fmt(m.pumpsEl + m.fansEl)} kWh/m²`;
+      document.getElementById('roPvPhysical').textContent = `${fmt(m.pvSelfUsed)} / ${fmt(m.pvExported)} / ${fmt(m.purchasedEl)} kWh/m²`;
 
       // Sidebar 03: Bygningsprofil & Forsyning
       document.getElementById('roModelId').textContent = `${d.bldgId.replace('Eksempel: ', '')} // ${d.ae} m²`;
@@ -2013,49 +2188,55 @@
       const activePump = d.pumps.find(p => p.pnom > 0) || { pnom: 0 };
       document.getElementById('roHeatDist').textContent = `${d.inletTemp}°/${d.returnTemp}°C, ${activePump.pnom}W pumpe, ${d.dhw.vol}L tank`;
 
-      // Sidebar 04: Låste kort pr. solcelleanlæg og solfangeranlæg (uden skydebånd)
+      // Sidebar 04: Låste kort pr. solcelleanlæg og solfangeranlæg
       const pvContainer = document.getElementById('pvUnitsContainer');
-      pvContainer.innerHTML = m.pvCalculated.map((u, idx) => `
-        <div class="ro-unit-card">
-          <div class="ro-unit-top">
-            <span>Solcelleanlæg ${idx + 1} — ${u.name} (${u.orient} · ${u.slope}°)</span>
-            <span class="mono-num" style="color:var(--pv-green);">${fmt(u.kwhM2, 1)} kWh/m²</span>
+      pvContainer.innerHTML = m.pvCalculated.map((u, idx) => {
+        const isActive = u.activeAreaM2 > 0;
+        return `
+          <div class="ro-unit-card ${isActive ? '' : 'inactive-unit'}">
+            <div class="ro-unit-top">
+              <span>Solcelleanlæg ${idx + 1} — ${u.name} (${u.orient} · ${u.slope}°)</span>
+              <span class="mono-num" style="color:${isActive ? 'var(--pv-green)' : 'var(--text-muted)'};">${isActive ? `${fmt(u.kwhM2, 1)} kWh/m²` : 'Inaktiv'}</span>
+            </div>
+            <div class="ro-unit-meta">
+              <span>Areal: <strong>${fmt(u.activeAreaM2, 1)} m²</strong> (${fmt(u.kwp, 2)} kWp)</span>
+              <span>Ydelse: <strong>${Math.round(u.kwhYear)} kWh/år</strong></span>
+            </div>
+            <div style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-secondary);">
+              ${isActive ? `Virkningsgrad: ${fmt(u.efficiency, 2)} · Horisont: ${u.horizon}° · Rotation: +${d.rotation}°` : `Konfigureret areal i fil: ${fmt(u.specAreaM2, 1)} m² · PV-flag: ${d.flags.pv_panel ? 'Tændt' : 'Slået fra'}`}
+            </div>
           </div>
-          <div class="ro-unit-meta">
-            <span>Areal: <strong>${fmt(u.activeAreaM2, 1)} m²</strong> (${fmt(u.kwp, 2)} kWp)</span>
-            <span>Ydelse: <strong>${Math.round(u.kwhYear)} kWh/år</strong></span>
-          </div>
-          <div style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-secondary);">
-            Virkningsgrad: ${fmt(u.efficiency, 2)} · Horisont: ${u.horizon}° · Rotation: +${d.rotation}°
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       const scContainer = document.getElementById('scUnitsContainer');
-      scContainer.innerHTML = m.scCalculated.map((u, idx) => `
-        <div class="ro-unit-card sc-card">
-          <div class="ro-unit-top">
-            <span>Solfanger — ${u.name} (${u.orient} · ${u.slope}°)</span>
-            <span class="mono-num" style="color:var(--sc-ochre);">${fmt(u.utilizedKwhM2, 1)} kWh/m²</span>
+      scContainer.innerHTML = m.scCalculated.map((u, idx) => {
+        const isActive = u.activeAreaM2 > 0;
+        return `
+          <div class="ro-unit-card sc-card ${isActive ? '' : 'inactive-unit'}">
+            <div class="ro-unit-top">
+              <span>Solfanger — ${u.name} (${u.orient} · ${u.slope}°)</span>
+              <span class="mono-num" style="color:${isActive ? 'var(--sc-ochre)' : 'var(--text-muted)'};">${isActive ? `${fmt(u.utilizedKwhM2, 1)} kWh/m²` : 'Inaktiv'}</span>
+            </div>
+            <div class="ro-unit-meta">
+              <span>Areal: <strong>${fmt(u.activeAreaM2, 1)} m²</strong> (η₀ = ${fmt(u.ny0, 2)})</span>
+              <span>Tilskud til VBV: <strong>${Math.round(u.utilizedKwhYear)} kWh/år</strong></span>
+            </div>
+            <div style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-secondary);">
+              ${isActive ? `Kredsvirk.: ${fmt(u.ny_loop, 2)} · Rør: ${u.tube_length} m · Pumpe: ${u.pump} W` : `Konfigureret areal i fil: ${fmt(u.specAreaM2, 1)} m² · Solfanger-flag: ${d.flags.solarpanel ? 'Tændt' : 'Slået fra'}`}
+            </div>
           </div>
-          <div class="ro-unit-meta">
-            <span>Areal: <strong>${fmt(u.activeAreaM2, 1)} m²</strong> (η₀ = ${fmt(u.ny0, 2)})</span>
-            <span>Tilskud til VBV: <strong>${Math.round(u.utilizedKwhYear)} kWh/år</strong></span>
-          </div>
-          <div style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-secondary);">
-            Kredsvirkningsgrad: ${fmt(u.ny_loop, 2)} · Rørlængde: ${u.tube_length} m · Pumpe: ${u.pump} W
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
-      // Top KPI Strip
+      // Top KPI Strip (KPI 1-4; KPI 5 er urørt)
       document.getElementById('kpiLabelRamme').textContent = `ENERGIRAMME BR 2018 (KRAV ≤ ${fmt(m.limitBR18)})`;
       document.getElementById('kpiValRamme').textContent = `${fmt(m.totalPrimaryEnergy)} kWh/m²`;
       const bRamme = document.getElementById('kpiBadgeRamme');
-      if (m.totalPrimaryEnergy <= m.limitLowEnergy) {
+      if (Number.isFinite(m.totalPrimaryEnergy) && m.totalPrimaryEnergy <= m.limitLowEnergy) {
         bRamme.className = 'kpi-badge ok';
         bRamme.textContent = `LAVENERGI OK (≤ ${fmt(m.limitLowEnergy)})`;
-      } else if (m.totalPrimaryEnergy <= m.limitBR18) {
+      } else if (Number.isFinite(m.totalPrimaryEnergy) && m.totalPrimaryEnergy <= m.limitBR18) {
         bRamme.className = 'kpi-badge ok';
         bRamme.textContent = 'BR18 OVERHOLDT';
       } else {
@@ -2067,15 +2248,19 @@
       document.getElementById('kpiBadgeNetto').textContent = `Rum // VBV (kWh/m²)`;
 
       if (d.flags.heatpump) {
+        document.getElementById('kpiLabelSupply').textContent = `VARMEPUMPE YDELSE (RUM + VBV)`;
         document.getElementById('kpiValSupply').textContent = `${fmt(m.hpYieldTotal)} kWh/m²`;
         document.getElementById('kpiBadgeSupply').textContent = `VP-EL: ${fmt(m.hpElTotal)} KWH/M²`;
       } else {
+        document.getElementById('kpiLabelSupply').textContent = `FORSYNINGSVARME (${m.supplyName.toUpperCase()})`;
         document.getElementById('kpiValSupply').textContent = `${fmt(m.backupHeatRoom + m.backupHeatDHW)} kWh/m²`;
         document.getElementById('kpiBadgeSupply').textContent = m.supplyName.toUpperCase();
       }
 
       document.getElementById('kpiValTilskud').textContent = `PV: ${fmt(m.solceller)} // Solv: ${fmt(m.utilizedSolfanger)}`;
-      document.getElementById('kpiBadgeTilskud').textContent = `${fmt(m.totalPVAreaM2, 1)} m² PV + ${fmt(m.totalSCAreaM2, 1)} m² Solf.`;
+      const bTilskud = document.getElementById('kpiBadgeTilskud');
+      bTilskud.className = (m.totalPVAreaM2 > 0 || m.totalSCAreaM2 > 0) ? 'kpi-badge ok' : 'kpi-badge neutral';
+      bTilskud.textContent = `${fmt(m.totalPVAreaM2, 1)} m² PV + ${fmt(m.totalSCAreaM2, 1)} m² Solf.`;
 
       document.getElementById('kpiValExtraPV').textContent = `${Math.round(m.ti.yieldYearKwh).toLocaleString('da-DK')} kWh/år`;
       document.getElementById('kpiBadgeExtraPV').textContent = `${fmt(m.ti.installedKwp, 2)} kWp (${fmt(m.ti.F7, 0)} m²)`;
@@ -2112,61 +2297,105 @@
           <td class="mono-num">${fmt(cb.ua, 2)} W/K</td>
         </tr>`).join('');
 
-      const winRows = d.windowList.filter(w => w.area > 0).map(w => `
-        <tr>
-          <td><strong>${w.id}</strong></td>
+      const winRows = d.windowList.map(w => {
+        const isActive = w.area > 0;
+        const shadePct = Math.round((1 - w.fShade) * 100);
+        return `
+        <tr class="${isActive ? '' : 'row-inactive'}">
+          <td><strong>${w.id}</strong>${isActive ? '' : ' <small>(0 m²)</small>'}</td>
           <td class="mono-num">${fmt(w.area, 2)} m²</td>
           <td class="mono-num">${w.orient} / ${w.slope}°</td>
           <td class="mono-num">U=${fmt(w.u, 2)} · g=${fmt(w.g, 2)} · FF=${fmt(w.ff, 2)}</td>
-          <td>${w.shading.id} (hor:${w.shading.horizon}°, udh:${w.shading.overhang}°, finV:${w.shading.sidefin_left}°)</td>
-          <td class="mono-num">${fmt(w.qSolKwh, 1)} kWh (${fmt(w.qSolKwh / d.ae, 2)} kWh/m²)</td>
-        </tr>`).join('');
+          <td>${w.shading.id} (hor:${w.shading.horizon}°, udh:${w.shading.overhang}°, fin:${w.shading.sidefin_left}°/${w.shading.sidefin_right}°, -${shadePct}%)</td>
+          <td class="mono-num">${Math.round(w.qSolKwh)} kWh (${fmt(w.qSolKwh / d.ae, 2)} kWh/m²)</td>
+        </tr>`;
+      }).join('');
 
-      const pvRows = m.pvCalculated.map((u, idx) => `
-        <tr>
-          <td><strong>Solcelleanlæg ${idx + 1} (${u.name})</strong></td>
-          <td class="mono-num">${fmt(u.activeAreaM2, 1)} m²</td>
-          <td class="mono-num">${u.orient} / ${u.slope}° (horisont ${u.horizon}° · rot +${d.rotation}°)</td>
-          <td class="mono-num">${fmt(u.peak_power, 3)} kWp/m² · η = ${fmt(u.efficiency, 2)}</td>
+      const pvRows = m.pvCalculated.map((u, idx) => {
+        const isActive = u.activeAreaM2 > 0;
+        return `
+        <tr class="${isActive ? '' : 'row-inactive'}">
+          <td><strong>Solcelleanlæg ${idx + 1} (${u.name})</strong>${isActive ? '' : ' <small>(Inaktiv)</small>'}</td>
+          <td class="mono-num">${fmt(u.activeAreaM2, 1)} m² <small>(fil: ${fmt(u.specAreaM2, 1)})</small></td>
+          <td class="mono-num">${u.orient} / ${u.slope}° (hor ${u.horizon}° · rot +${d.rotation}°)</td>
+          <td class="mono-num">${fmt(u.peak_power, 3)} kWp/m² · η=${fmt(u.efficiency, 2)}</td>
           <td class="mono-num">${Math.round(u.kwhYear)} kWh/år (${fmt(u.kwhM2, 2)} kWh/m²)</td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
 
-      const scRows = m.scCalculated.map((u, idx) => `
-        <tr>
-          <td><strong>Solfangeranlæg ${idx + 1} (${u.name})</strong></td>
-          <td class="mono-num">${fmt(u.activeAreaM2, 1)} m²</td>
-          <td class="mono-num">${u.orient} / ${u.slope}° (horisont ${u.horizon}° · rot +${d.rotation}°)</td>
-          <td class="mono-num">η₀ = ${fmt(u.ny0, 2)} · kreds = ${fmt(u.ny_loop, 2)} · rør = ${u.tube_length}m</td>
+      const scRows = m.scCalculated.map((u, idx) => {
+        const isActive = u.activeAreaM2 > 0;
+        return `
+        <tr class="${isActive ? '' : 'row-inactive'}">
+          <td><strong>Solfangeranlæg ${idx + 1} (${u.name})</strong>${isActive ? '' : ' <small>(Inaktiv)</small>'}</td>
+          <td class="mono-num">${fmt(u.activeAreaM2, 1)} m² <small>(fil: ${fmt(u.specAreaM2, 1)})</small></td>
+          <td class="mono-num">${u.orient} / ${u.slope}° (hor ${u.horizon}° · rot +${d.rotation}°)</td>
+          <td class="mono-num">η₀=${fmt(u.ny0, 2)} · kreds=${fmt(u.ny_loop, 2)} · a₁=${fmt(u.heat_loss_coef, 1)} · rør=${u.tube_length}m</td>
           <td class="mono-num">${Math.round(u.utilizedKwhYear)} kWh/år (${fmt(u.utilizedKwhM2, 2)} kWh/m² til VBV)</td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
 
       const ventRows = d.ventList.map(v => `
-        <tr>
-          <td><strong>${v.id}</strong></td>
+        <tr class="${v.fo > 0 ? '' : 'row-inactive'}">
+          <td><strong>${v.id}</strong>${v.fo > 0 ? '' : ' <small>(fo=0, inaktiv)</small>'}</td>
           <td class="mono-num">${fmt(v.area, 1)} m² (fo = ${v.fo})</td>
           <td class="mono-num">q_mech = ${fmt(v.qvm, 2)} l/s·m² (VGV = ${fmt(v.nvgv * 100, 0)}%)</td>
           <td class="mono-num">q_infil = ${fmt(v.qid, 2)} l/s·m² (dag: ${fmt(v.qid_day, 2)})</td>
           <td class="mono-num">SEL = ${fmt(v.sel, 2)} kJ/m³ · H_ve = ${fmt(v.hVeZone, 1)} W/K</td>
         </tr>`).join('');
 
+      const heatSupplyLabel = d.flags.heatpump ? `${m.supplyName} (+ backup)` : m.supplyName;
+
       c.innerHTML = `
-        <div class="inspector-section-title">A // BE18 NØGLETAL &amp; SOLCELLE-/SOLFANGERANLÆG</div>
+        <div class="inspector-nav">
+          <a class="inspector-jump" href="#inspSecSum">OVERBLIK &amp; BALANCE</a>
+          <a class="inspector-jump" href="#inspSecA">A // SOLCELLER &amp; SOLFANGER</a>
+          <a class="inspector-jump" href="#inspSecB">B // BYGNING &amp; FORSYNING</a>
+          <a class="inspector-jump" href="#inspSecC">C // KLIMASKÆRM &amp; KULDEBROER</a>
+          <a class="inspector-jump" href="#inspSecD">D // VINDUER &amp; SKYGGER</a>
+          <a class="inspector-jump" href="#inspSecE">E // VENTILATION</a>
+        </div>
+
+        <div id="inspSecSum" class="inspector-summary-grid">
+          <div class="inspector-sum-card">
+            <div class="inspector-sum-kicker">1 // Rumopvarmning</div>
+            <div class="inspector-sum-val">${fmt(m.netSpaceHeatDemand)} kWh/m²</div>
+            <div class="inspector-sum-sub">Bruttotab ${fmt(m.spaceHeatGross)} − Nyttiggjort gratisvarme ${fmt(m.utilizedFreeGains)} (η=${fmt(m.eta * 100, 1)}%). Udluftet overskud: ${fmt(m.unutilizedFreeGains)} kWh/m².</div>
+          </div>
+          <div class="inspector-sum-card">
+            <div class="inspector-sum-kicker">2 // Varmt Brugsvand (VBV)</div>
+            <div class="inspector-sum-val">${fmt(m.totalDHWGross)} kWh/m²</div>
+            <div class="inspector-sum-sub">Netto VBV ${fmt(m.netDHWDemand)} + Inst.tab ${fmt(m.lossDHWInst)}. Dækket af Solfanger ${fmt(m.utilizedSolfanger)} + ${heatSupplyLabel} ${fmt(m.remDHWDemand)}.</div>
+          </div>
+          <div class="inspector-sum-card">
+            <div class="inspector-sum-kicker">3 // El-balance &amp; Solceller</div>
+            <div class="inspector-sum-val">${fmt(m.totalBuildingEl)} kWh/m² el</div>
+            <div class="inspector-sum-sub">VP ${fmt(m.hpElTotal)} + Pumper/Vent ${fmt(m.pumpsEl + m.fansEl)}. Solceller: ${fmt(m.solceller)} (${fmt(m.pvSelfUsed)} egetforbrug / ${fmt(m.pvExported)} eksport). Netkøb: ${fmt(m.purchasedEl)}.</div>
+          </div>
+          <div class="inspector-sum-card">
+            <div class="inspector-sum-kicker">4 // BR18 Energiramme</div>
+            <div class="inspector-sum-val" style="color:${m.totalPrimaryEnergy <= m.limitBR18 ? 'var(--pv-green)' : '#b8332a'};">${fmt(m.totalPrimaryEnergy)} / ${fmt(m.limitBR18)} kWh/m²</div>
+            <div class="inspector-sum-sub">Vægtet varme ${fmt(m.bidragVarme)} + Netto el ${fmt(m.bidragElDrift)} × 1,9 = ${fmt(m.weightedElContribution)}. Status: <strong>${m.totalPrimaryEnergy <= m.limitBR18 ? 'OVERHOLDT' : 'OVERSKREDET'}</strong>.</div>
+          </div>
+        </div>
+
+        <div id="inspSecA" class="inspector-section-title">A // SOLCELLE- &amp; SOLFANGERANLÆG FRA BEXML</div>
         <table class="inspector-table">
-          <thead><tr><th>Anlæg &amp; Orientering</th><th>Areal i BEXML</th><th>Orientering &amp; Hældning</th><th>Tekniske Specifikationer</th><th>Årlig Ydelse i Be18</th></tr></thead>
+          <thead><tr><th>Anlæg &amp; Orientering</th><th>Aktivt Areal</th><th>Orientering &amp; Hældning</th><th>Tekniske Specifikationer</th><th>Årlig Ydelse (SBi 213)</th></tr></thead>
           <tbody>
             ${pvRows}
             ${scRows}
           </tbody>
         </table>
 
-        <div class="inspector-section-title">B // BYGNINGSHOVEDDATA &amp; KOMBINERET FORSYNING</div>
+        <div id="inspSecB" class="inspector-section-title">B // BYGNINGSHOVEDDATA &amp; FORSYNINGSANLÆG</div>
         <div class="inspector-grid">
           <table class="inspector-table">
             <thead><tr><th>Bygningsparameter</th><th>Aflæst Værdi</th><th>Beskrivelse</th></tr></thead>
             <tbody>
               <tr><td>Bygningsnavn / Version</td><td class="mono-num">${d.bldgId}</td><td>${d.beVersion}</td></tr>
-              <tr><td>Opvarmet etageareal</td><td class="mono-num">${d.ae} m²</td><td>Boligareal</td></tr>
-              <tr><td>Varmekapacitet / Tidskonstant</td><td class="mono-num">${d.heat_cap} Wh/K·m² // τ = ${m.tauHours} t</td><td>Udnyttelsesgrad η = ${fmt(m.eta * 100, 1)}%</td></tr>
+              <tr><td>Opvarmet etageareal</td><td class="mono-num">${d.ae} m²</td><td>Boligareal (BR18 krav = 30 + 1000/${d.ae})</td></tr>
+              <tr><td>Varmekapacitet / Tidskonstant</td><td class="mono-num">${d.heat_cap} Wh/K·m² // τ = ${m.tauHours} t</td><td>Årlig udnyttelsesgrad η = ${fmt(m.eta * 100, 1)}%</td></tr>
               <tr><td>Temperatur-setpunkter</td><td class="mono-num">${d.th_heat}° / ${d.th_setp}° / ${d.th_nv}° / ${d.th_cool}°C</td><td>Opvarmning, setpunkt, natventilation, køling</td></tr>
               <tr><td>Rotation / Brugstid / Udetemp.</td><td class="mono-num">${d.rotation}° // ${d.tb} t/uge // ${d.tu}°C</td><td>Bygningsorientering og driftstid</td></tr>
             </tbody>
@@ -2175,16 +2404,16 @@
           <table class="inspector-table">
             <thead><tr><th>Forsynings- &amp; VBV-komponent</th><th>Aflæste Indstillinger &amp; Ydelse</th></tr></thead>
             <tbody>
-              <tr><td><strong>Hovedforsyning (${m.supplyName})</strong></td><td class="mono-num">Samlet VP-ydelse: ${fmt(m.hpYieldTotal)} kWh/m² (Rumvarme: ${fmt(m.hpYieldRoom)} + VBV: ${fmt(m.hpYieldDHW)})</td></tr>
-              <tr><td><strong>Varmepumpe (${d.heatPump.id})</strong></td><td class="mono-num">Rum: ${d.heatPump.room.nom_eff} kW, COP ${d.heatPump.room.nom_cop} // VBV: ${d.heatPump.dhw.nom_eff} kW, COP ${d.heatPump.dhw.nom_cop} // VP-El: ${fmt(m.hpElTotal)} kWh/m²</td></tr>
-              <tr><td><strong>Varmt brugsvand (${d.dhw.tankId})</strong></td><td class="mono-num">Netto VBV: ${fmt(m.netDHWDemand)} kWh/m² + Installationstab: ${fmt(m.lossDHWInst)} kWh/m² = ${fmt(m.totalDHWGross)} kWh/m²</td></tr>
-              <tr><td><strong>Varmefordeling &amp; Pumper</strong></td><td class="mono-num">Fremløb ${d.inletTemp}°C / Retur ${d.returnTemp}°C // Pumpe-el (inkl. solfangerpumpe): ${fmt(m.pumpsEl)} kWh/m²</td></tr>
-              <tr><td><strong>Energiramme BR 2018</strong></td><td class="mono-num">Samlet energibehov: <strong>${fmt(m.totalPrimaryEnergy)} kWh/m²</strong> (Varme: ${fmt(m.bidragVarme)} // El til drift: ${fmt(m.bidragElDrift)})</td></tr>
+              <tr><td><strong>Hovedforsyning (${m.supplyName})</strong></td><td>${d.flags.heatpump ? `Samlet VP-ydelse: <span class="mono-num">${fmt(m.hpYieldTotal)} kWh/m²</span> (Rum: ${fmt(m.hpYieldRoom)} + VBV: ${fmt(m.hpYieldDHW)} · Spidslast: ${fmt(m.backupHeatRoom + m.backupHeatDHW)})` : `Dækker <span class="mono-num">${fmt(m.backupHeatRoom + m.backupHeatDHW)} kWh/m²</span> (Rum: ${fmt(m.backupHeatRoom)} + VBV: ${fmt(m.backupHeatDHW)})`}</td></tr>
+              <tr><td><strong>Varmepumpe (${d.flags.heatpump ? d.heatPump.id : 'Slået fra'})</strong></td><td>${d.flags.heatpump ? `Rum: ${d.heatPump.room.nom_eff} kW (COP ${d.heatPump.room.nom_cop}) // VBV: ${d.heatPump.dhw.nom_eff} kW (COP ${d.heatPump.dhw.nom_cop}) // VP-El: <span class="mono-num">${fmt(m.hpElTotal)} kWh/m²</span>` : 'Ikke aktiv i BEXML-filen'}</td></tr>
+              <tr><td><strong>Varmt brugsvand (${d.dhw.tankId})</strong></td><td>Netto VBV <span class="mono-num">${fmt(m.netDHWDemand)}</span> + Inst.tab <span class="mono-num">${fmt(m.lossDHWInst)}</span> = <span class="mono-num">${fmt(m.totalDHWGross)} kWh/m²</span> (heraf Solfanger <span class="mono-num">${fmt(m.utilizedSolfanger)}</span>, Rest <span class="mono-num">${fmt(m.remDHWDemand)}</span>)</td></tr>
+              <tr><td><strong>Varmefordeling &amp; Pumper</strong></td><td>Fremløb ${d.inletTemp}°C / Retur ${d.returnTemp}°C · Varmerør ${d.heatTube.len} m (tab ${fmt(m.lossSpaceTube)} kWh/m²) · Pumpe/Vent el: <span class="mono-num">${fmt(m.pumpsEl + m.fansEl)} kWh/m²</span></td></tr>
+              <tr><td><strong>Energiramme BR 2018</strong></td><td>Samlet energibehov: <strong class="mono-num">${fmt(m.totalPrimaryEnergy)} kWh/m²</strong> (Varme bidrag: ${fmt(m.bidragVarme)} // Netto el: ${fmt(m.bidragElDrift)} × 1,9)</td></tr>
             </tbody>
           </table>
         </div>
 
-        <div class="inspector-section-title">C // KLIMASKÆRM: OPAKE KONSTRUKTIONER &amp; KULDEBROER</div>
+        <div id="inspSecC" class="inspector-section-title">C // KLIMASKÆRM: OPAKE KONSTRUKTIONER &amp; KULDEBROER (H_tr = ${fmt(m.hTrTotal, 2)} W/K)</div>
         <div class="inspector-grid">
           <table class="inspector-table">
             <thead><tr><th>Opak Konstruktion</th><th>Areal</th><th>U-værdi</th><th>b-faktor</th><th>Spec. tab (U·A·b)</th></tr></thead>
@@ -2196,13 +2425,13 @@
           </table>
         </div>
 
-        <div class="inspector-section-title">D // VINDUER &amp; TILKNYTTEDE SKYGGER</div>
+        <div id="inspSecD" class="inspector-section-title">D // VINDUER &amp; TILKNYTTEDE SKYGGER (SAMLET SOLINDFALD: ${fmt(m.solPassiv)} KWH/M²)</div>
         <table class="inspector-table">
-          <thead><tr><th>Vindue</th><th>Areal</th><th>Orient / Hældning</th><th>Termisk &amp; Sol-data</th><th>Skyggeforhold</th><th>Beregnet Solindfald</th></tr></thead>
+          <thead><tr><th>Vindue</th><th>Areal</th><th>Orient / Hældning</th><th>Termisk &amp; Sol-data</th><th>Skyggeforhold</th><th>Netto Solindfald</th></tr></thead>
           <tbody>${winRows}</tbody>
         </table>
 
-        <div class="inspector-section-title">E // VENTILATIONSZONER</div>
+        <div id="inspSecE" class="inspector-section-title">E // VENTILATIONSZONER (H_ve = ${fmt(m.hVeTotal, 2)} W/K)</div>
         <table class="inspector-table">
           <thead><tr><th>Zone</th><th>Areal &amp; Driftstid</th><th>Mekanisk Ventilation &amp; VGV</th><th>Infiltration</th><th>El &amp; Varmetab</th></tr></thead>
           <tbody>${ventRows}</tbody>
@@ -2210,7 +2439,53 @@
       `;
     }
 
-    // ================= 7. SVG DIAGRAM-GENERATORER (FYSISK OPDELT SANKEY, SOL-ANALYSE, 12 MDR, TI) =================
+    // ================= 7. SVG HJÆLPERE & DIAGRAM-GENERATORER =================
+    function svgEsc(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function niceAxis(maxVal, targetTicks = 5) {
+      const safeMax = Math.max(0.4, maxVal);
+      const roughStep = safeMax / targetTicks;
+      const pow10 = Math.pow(10, Math.floor(Math.log10(roughStep)));
+      const norm = roughStep / pow10;
+      let niceNorm = 1;
+      if (norm > 5) niceNorm = 10;
+      else if (norm > 2.5) niceNorm = 5;
+      else if (norm > 2) niceNorm = 2.5;
+      else if (norm > 1.2) niceNorm = 2;
+      else niceNorm = 1;
+      const step = niceNorm * pow10;
+      const niceMax = Math.ceil(safeMax / step) * step;
+      const ticks = [];
+      for (let v = 0; v <= niceMax + step * 0.001; v += step) {
+        ticks.push(Number(v.toFixed(4)));
+      }
+      return { niceMax, step, ticks };
+    }
+
+    function layoutLabelSlots(items, minGap, minY, maxY) {
+      if (!items.length) return [];
+      const sorted = items.map((it, idx) => ({ idx, y: it.targetY })).sort((a, b) => a.y - b.y);
+      sorted[0].y = Math.max(minY, sorted[0].y);
+      for (let i = 1; i < sorted.length; i++) {
+        sorted[i].y = Math.max(sorted[i].y, sorted[i - 1].y + minGap);
+      }
+      if (maxY !== undefined && sorted[sorted.length - 1].y > maxY) {
+        sorted[sorted.length - 1].y = maxY;
+        for (let i = sorted.length - 2; i >= 0; i--) {
+          sorted[i].y = Math.min(sorted[i].y, sorted[i + 1].y - minGap);
+        }
+      }
+      const out = new Array(items.length);
+      sorted.forEach(s => { out[s.idx] = s.y; });
+      return out;
+    }
+
     function bezierRibbon(x0, y0, x1, y1, h, color, opacity = 0.72) {
       if (h <= 0.05) return '';
       const cx = (x0 + x1) / 2;
@@ -2235,22 +2510,22 @@
       if (currentTab === '01') {
         document.getElementById('plancheTitle').textContent = '01 // SANKEY ENERGIBALANCE — RUMOPVARMNING, VARMT BRUGSVAND & EL-KREDSLØB';
         document.getElementById('plancheSubtitle').textContent =
-          `Fysisk adskilte kredsløb // 1: Bygningsvarmetab (Transmission + Ventilation + Rørtab) · 2: Varmt brugsvand (Solfanger + VP VBV-del) · 3: El & Solceller`;
+          `Månedsbaseret SBi 213-balance opdelt i 3 fysiske kredsløb // Kredsløb 1: Rumopvarmning · Kredsløb 2: Varmt brugsvand · Kredsløb 3: El-kredsløb`;
         svgC.innerHTML = buildTab01SankeySVG();
       } else if (currentTab === '02') {
-        document.getElementById('plancheTitle').textContent = '02 // SOLCELLER (PR. ANLÆG), SOLFANGER & PASSIVT SOLINDFALD';
+        document.getElementById('plancheTitle').textContent = '02 // SOLCELLER, SOLFANGER, PASSIVT SOLINDFALD & UDNYTTELSESGRAD';
         document.getElementById('plancheSubtitle').textContent =
-          `Detaljeret sammenligning af installerede solcelleanlæg (${fmt(m.totalPVAreaM2, 1)} m² → ${fmt(m.solceller)} kWh/m²), solfanger (${fmt(m.totalSCAreaM2, 1)} m² → ${fmt(m.utilizedSolfanger)} kWh/m²) og vinduer`;
+          `Vinduesorientering & skyggetab (${fmt(m.solPassiv)} kWh/m²), aktive anlæg (${fmt(m.totalPVAreaM2, 1)} m² PV → ${fmt(m.solceller)} kWh/m² · ${fmt(m.totalSCAreaM2, 1)} m² Solv. → ${fmt(m.utilizedSolfanger)} kWh/m²) samt måneds-udnyttelse`;
         svgC.innerHTML = buildTab02SolarSVG();
       } else if (currentTab === '03') {
-        document.getElementById('plancheTitle').textContent = '03 // MÅNEDLIG BALANCE (12 MDR) — SÆSONPROFIL FRA BEXML';
+        document.getElementById('plancheTitle').textContent = '03 // MÅNEDLIG BALANCE (12 MDR) — VARME- & EL-SÆSONPROFIL';
         document.getElementById('plancheSubtitle').textContent =
-          `12-måneders samspil mellem varmetab, udnyttet sol/intern varme, solcelleproduktion og udluftet sommeroverskud`;
+          `Måned-for-måned opgørelse af varmetab vs. dækning (Rum + VBV) samt bygnings-el vs. solceller og netkøb`;
         svgC.innerHTML = buildTab03MonthlySVG();
       } else if (currentTab === '04') {
         document.getElementById('plancheTitle').textContent = '04 // KOMPLET BEXML MODEL-OVERSIGT — ALLE AFLÆSTE BYGNINGSDATA';
         document.getElementById('plancheSubtitle').textContent =
-          `Komplet 1:1 dokumentation af samtlige parametre i ${d.fileName}`;
+          `Komplet 1:1 dokumentation af samtlige parametre og nøgletal for ${d.fileName}`;
         svgC.style.display = 'none';
         inspC.style.display = 'block';
         renderInspector();
@@ -2269,19 +2544,46 @@
       const m = MODEL;
       const d = m.bexml;
       const t = m.theme;
-      document.getElementById('footerLeftText').innerHTML =
-        `KILDE: <strong>${d.fileName}</strong> &nbsp;|&nbsp; AREAL: <strong>${d.ae} m²</strong> &nbsp;|&nbsp; VARMEPUMPE: <strong>${fmt(m.hpYieldTotal)} kWh/m²</strong> &nbsp;|&nbsp; SOLVARME: <strong>${fmt(m.utilizedSolfanger)} kWh/m²</strong> &nbsp;|&nbsp; SOLCELLER: <strong>${fmt(m.solceller)} kWh/m²</strong> &nbsp;|&nbsp; ENERGIRAMME BR18: <strong>${fmt(m.totalPrimaryEnergy)} kWh/m²</strong>`;
+      const supplyTxt = d.flags.heatpump
+        ? `VARMEPUMPE: <strong>${fmt(m.hpYieldTotal)} kWh/m²</strong>`
+        : `FORSYNINGSVARME: <strong>${fmt(m.backupHeatRoom + m.backupHeatDHW)} kWh/m²</strong>`;
 
-      document.getElementById('footerLegend').innerHTML = `
-        <span class="swatch-item"><span class="swatch-box" style="background:${t.supplyHeat}"></span>VP / Forsyningsvarme</span>
-        <span class="swatch-item"><span class="swatch-box" style="background:${t.solarThermal}"></span>Solfanger til VBV (${fmt(m.utilizedSolfanger)})</span>
-        <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPassiv}"></span>Passiv Sol (${fmt(m.solPassiv)})</span>
-        <span class="swatch-item"><span class="swatch-box" style="background:${t.internalGain}"></span>Intern Last (${fmt(m.internPerson + m.internApparat)})</span>
-        <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPV}"></span>Solceller (${fmt(m.solceller)})</span>
-      `;
+      document.getElementById('footerLeftText').innerHTML =
+        `KILDE: <strong>${svgEsc(d.fileName)}</strong> &nbsp;|&nbsp; AREAL: <strong>${d.ae} m²</strong> &nbsp;|&nbsp; ${supplyTxt} &nbsp;|&nbsp; SOLVARME: <strong>${fmt(m.utilizedSolfanger)} kWh/m²</strong> &nbsp;|&nbsp; SOLCELLER: <strong>${fmt(m.solceller)} kWh/m²</strong> &nbsp;|&nbsp; BR18: <strong>${fmt(m.totalPrimaryEnergy)} kWh/m²</strong>`;
+
+      const leg = document.getElementById('footerLegend');
+      if (currentTab === '01') {
+        leg.innerHTML = `
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.supplyHeat}"></span>Forsyningsvarme</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarThermal}"></span>Solfanger (${fmt(m.utilizedSolfanger)})</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPassiv}"></span>Passiv sol (${fmt(m.solPassiv)})</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.internalGain}"></span>Intern last (${fmt(m.internPerson + m.internApparat)})</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPV}"></span>Solceller (${fmt(m.solceller)})</span>
+        `;
+      } else if (currentTab === '02') {
+        leg.innerHTML = `
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPassiv}"></span>Passiv sol efter skygge</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:#e6e1d6"></span>Brutto før skygge</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarThermal}"></span>Solfanger til VBV</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPV}"></span>Solceller el</span>
+        `;
+      } else if (currentTab === '03') {
+        leg.innerHTML = `
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.lossTrans}"></span>Rumtab</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.lossDHW}"></span>VBV inkl. tab</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPassiv}"></span>Udnyttet gratisvarme</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.supplyHeat}"></span>Tilført varme</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.supplyEl}"></span>Bygnings-el</span>
+          <span class="swatch-item"><span class="swatch-box" style="background:${t.solarPV}"></span>PV egetforbrug</span>
+        `;
+      } else if (currentTab === '04') {
+        leg.innerHTML = `<span>Komplet parameter- og varmetabsoversigt beregnet direkte fra <strong>${svgEsc(d.fileName)}</strong> (månedsbaseret SBi 213)</span>`;
+      } else {
+        leg.innerHTML = `<span>Teknologisk Institut solcelleberegner for bruger-el uden for Be18-energirammen</span>`;
+      }
     }
 
-    // ----------------- TAB 01: FYSISK OPDELT SANKEY DIAGRAM (RUMVARME, VBV OG EL HVER FOR SIG) -----------------
+    // ----------------- TAB 01: FYSISK OPDELT SANKEY DIAGRAM (RUMVARME, VBV OG EL) -----------------
     function buildTab01SankeySVG() {
       const m = MODEL;
       const d = m.bexml;
@@ -2290,33 +2592,23 @@
       const showUnutil = m.showUnutilized;
       const showPVExp = m.showPVExport;
 
-      const W = 1280;
-      const H = showBottom ? 790 : 570;
+      const W = 1320;
+      const xLeftBar = 396;
+      const barW = 22;
+      const xRightBar = 884;
 
-      // =========================================================================
-      // KREDSLØB 1: RUMOPVARMNING & SAMMENHÆNGENDE BYGNINGSVARMETAB
-      //   Venstre: Varmepumpe (Rumopvarmning) + evt. spidslast/fjernvarme,
-      //            Passivt Solindfald, Personvarme, Apparatvarme
-      //   Højre:   SAMMENHÆNGENDE BYGNINGSVARMETAB-BLOK (Transmission + Ventilation + Varmerør)
-      //            + (valgfrit) Ej udnyttet sol & intern varme
-      // =========================================================================
+      // ---- 1. KREDSLØB DATA ----
+      // Kredsløb 1: Rumopvarmning
       const spaceSources = [];
       const spaceSupplyTotal = m.hpYieldRoom + m.backupHeatRoom;
       if (spaceSupplyTotal >= 0.05) {
-        const lbl = d.flags.heatpump
-          ? `${m.supplyName} — Rumopvarmning`
-          : `Forsyningsvarme — Rumopvarmning`;
+        const lbl = d.flags.heatpump ? `${m.supplyName} — Rumopvarmning` : `${m.supplyName} — Rumopvarmning`;
         const sub = d.flags.heatpump
-          ? `Netto rumvarme (${fmt(m.hpYieldRoom)} kWh/m² VP${m.backupHeatRoom >= 0.1 ? ` + ${fmt(m.backupHeatRoom)} spidslast` : ''})`
-          : `Dækker netto rumopvarmningsbehov`;
+          ? `VP ${fmt(m.hpYieldRoom)}${m.backupHeatRoom >= 0.05 ? ` + spidslast ${fmt(m.backupHeatRoom)}` : ''} kWh/m²`
+          : `Dækker netto rumvarmebehov`;
         spaceSources.push({
-          id: 'spaceSupply',
-          label: lbl,
-          sub,
-          val: spaceSupplyTotal,
-          utilVal: spaceSupplyTotal,
-          unutilVal: 0,
-          color: t.supplyHeat
+          id: 'spaceSupply', label: lbl, sub,
+          val: spaceSupplyTotal, utilVal: spaceSupplyTotal, unutilVal: 0, color: t.supplyHeat
         });
       }
 
@@ -2325,13 +2617,12 @@
         const winCount = d.windowList.filter(w => w.area > 0).length;
         spaceSources.push({
           id: 'solPassiv',
-          label: 'Passivt Solindfald (Vinduer)',
+          label: `Passivt solindfald (${winCount} vinduer)`,
           sub: showUnutil
-            ? `${winCount} vinduer (Nyttiggjort i rum: ${fmt(m.utilizedSolPassiv)} · Udluftet: ${fmt(m.solPassiv - m.utilizedSolPassiv)})`
-            : `${winCount} vinduer (Nyttiggjort til rumopvarmning ved η=${fmt(m.eta * 100, 0)}%)`,
-          val: solPassivShown,
-          utilVal: m.utilizedSolPassiv,
-          unutilVal: showUnutil ? (m.solPassiv - m.utilizedSolPassiv) : 0,
+            ? `Nyttiggjort ${fmt(m.utilizedSolPassiv)} · Udluftet ${fmt(m.solPassiv - m.utilizedSolPassiv)} kWh/m²`
+            : `Nyttiggjort i rum (gennemsnit η=${fmt(m.eta * 100, 0)}%)`,
+          val: solPassivShown, utilVal: m.utilizedSolPassiv,
+          unutilVal: showUnutil ? Math.max(0, m.solPassiv - m.utilizedSolPassiv) : 0,
           color: t.solarPassiv
         });
       }
@@ -2339,12 +2630,10 @@
       const persShown = showUnutil ? m.internPerson : m.utilizedInternPerson;
       if (persShown >= 0.05) {
         spaceSources.push({
-          id: 'internPers',
-          label: 'Personvarme (Intern last)',
-          sub: `${fmt(d.usageLoad.ppers, 1)} W/m² (Nyttiggjort i rum: ${fmt(m.utilizedInternPerson)} kWh/m²)`,
-          val: persShown,
-          utilVal: m.utilizedInternPerson,
-          unutilVal: showUnutil ? (m.internPerson - m.utilizedInternPerson) : 0,
+          id: 'internPers', label: 'Personvarme (intern last)',
+          sub: `${fmt(d.usageLoad.ppers, 1)} W/m² · Nyttiggjort ${fmt(m.utilizedInternPerson)} kWh/m²`,
+          val: persShown, utilVal: m.utilizedInternPerson,
+          unutilVal: showUnutil ? Math.max(0, m.internPerson - m.utilizedInternPerson) : 0,
           color: t.internalGain
         });
       }
@@ -2352,533 +2641,778 @@
       const appShown = showUnutil ? m.internApparat : m.utilizedInternApparat;
       if (appShown >= 0.05) {
         spaceSources.push({
-          id: 'internApp',
-          label: 'Apparat- & Belysningsvarme',
-          sub: `${fmt(d.usageLoad.papp, 1)} W/m² (Nyttiggjort i rum: ${fmt(m.utilizedInternApparat)} kWh/m²)`,
-          val: appShown,
-          utilVal: m.utilizedInternApparat,
-          unutilVal: showUnutil ? (m.internApparat - m.utilizedInternApparat) : 0,
-          color: t.internalGain
+          id: 'internApp', label: 'Apparat- & belysningsvarme',
+          sub: `${fmt(d.usageLoad.papp, 1)} W/m² · Nyttiggjort ${fmt(m.utilizedInternApparat)} kWh/m²`,
+          val: appShown, utilVal: m.utilizedInternApparat,
+          unutilVal: showUnutil ? Math.max(0, m.internApparat - m.utilizedInternApparat) : 0,
+          color: '#a37e6a'
         });
       }
 
-      // Sammenhængende del-segmenter i Bygningsvarmetab på højre side
       const spaceLossParts = [
-        { id: 'lossTrans', label: 'Transmissionsvarmetab', sub: 'Tag, gulv, ydervægge, vinduer & kuldebroer', val: m.lossTrans, color: t.lossTrans },
-        { id: 'lossVent', label: 'Ventilation & Infiltration', sub: 'Luftskifte & infiltration i opvarmede rum', val: m.lossVent, color: t.lossVent }
+        { id: 'lossTrans', label: 'Transmissionsvarmetab', sub: `Tag, gulv, ydervæg, døre, vinduer & kuldebroer`, val: m.lossTrans, color: t.lossTrans },
+        { id: 'lossVent', label: 'Ventilation & infiltration', sub: `Luftskifte + infiltration (${fmt(m.hVeTotal, 1)} W/K)`, val: m.lossVent, color: t.lossVent }
       ];
       if (m.lossSpaceTube >= 0.05) {
         spaceLossParts.push({
-          id: 'lossTube',
-          label: 'Varmerørstab (Fordelingsrør)',
-          sub: `${d.heatTube.len} m varmerør`,
-          val: m.lossSpaceTube,
-          color: t.lossTech
+          id: 'lossTube', label: 'Varmerørstab (fordeling)',
+          sub: `${d.heatTube.len} m rør i bygning`, val: m.lossSpaceTube, color: t.lossTech
         });
       }
 
-      // =========================================================================
-      // KREDSLØB 2: VARMT BRUGSVAND (VBV) & BEHOLDERTAB
-      //   Kun Solfanger og Varmepumpe (VBV-del) / Fjernvarme / Kedel kan opvarme VBV!
-      // =========================================================================
+      // Kredsløb 2: Varmt brugsvand (VBV)
       const dhwSources = [];
       if (m.utilizedSolfanger >= 0.05) {
-        const scDesc = m.scCalculated.filter(u => u.activeAreaM2 > 0).map(u => `${fmt(u.activeAreaM2, 1)} m² ${u.orient} (${u.slope}°)`).join(' + ');
+        const scDesc = m.scCalculated.filter(u => u.activeAreaM2 > 0).map(u => `${fmt(u.activeAreaM2, 1)} m² ${u.orient}`).join(' + ');
         dhwSources.push({
-          id: 'scDHW',
-          label: 'Solfanger — Aktiv solvarme til VBV',
-          sub: `${scDesc} · Opvarmer varmtvandsbeholder`,
-          val: m.utilizedSolfanger,
-          color: t.solarThermal
+          id: 'scDHW', label: 'Solfanger — Solvarme til VBV',
+          sub: `${scDesc} · Dækker ${Math.round((m.utilizedSolfanger / Math.max(0.01, m.totalDHWGross)) * 100)}% af VBV`,
+          val: m.utilizedSolfanger, color: t.solarThermal
         });
       }
       const dhwSupplyRest = m.hpYieldDHW + m.backupHeatDHW;
       if (dhwSupplyRest >= 0.05) {
-        const lbl = d.flags.heatpump
-          ? `${m.supplyName} — Varmt brugsvand`
-          : `Forsyningsvarme — Varmt brugsvand`;
+        const lbl = d.flags.heatpump ? `${m.supplyName} — Varmt brugsvand` : `${m.supplyName} — Varmt brugsvand`;
         const sub = d.flags.heatpump
-          ? `Kombineret VP brugsvandsdel (COP ${fmt(d.heatPump.dhw.nom_cop, 1)})`
-          : `Dækker varmt brugsvand & beholdertab`;
+          ? `VP VBV-del (COP ${fmt(d.heatPump.dhw.nom_cop, 1)}${m.backupHeatDHW >= 0.05 ? ` + ${fmt(m.backupHeatDHW)} backup` : ''})`
+          : `Dækker VBV & beholdertab`;
         dhwSources.push({
-          id: 'hpDHW',
-          label: lbl,
-          sub,
-          val: dhwSupplyRest,
-          color: t.supplyHeatDHW
+          id: 'hpDHW', label: lbl, sub, val: dhwSupplyRest, color: t.supplyHeatDHW
         });
       }
 
       const dhwLossParts = [
-        { id: 'netDHW', label: 'Varmt Brugsvand (Netto VBV)', sub: `${d.dhw.consumption} l/m²/år opvarmet til ${d.dhw.temp}°C`, val: m.netDHWDemand, color: t.lossDHW }
+        { id: 'netDHW', label: 'Varmt brugsvand (netto VBV)', sub: `${d.dhw.consumption} l/m²·år opvarmet til ${d.dhw.temp}°C`, val: m.netDHWDemand, color: t.lossDHW }
       ];
       if (m.lossDHWInst >= 0.05) {
         dhwLossParts.push({
-          id: 'instDHW',
-          label: 'VBV Beholder- & Rørtab',
-          sub: `${d.dhw.vol} L VBV-beholder & tilslutningsrør`,
-          val: m.lossDHWInst,
-          color: t.lossTech
+          id: 'instDHW', label: 'VBV beholder-, rør- & vekslertab',
+          sub: `${d.dhw.vol} L beholder${m.dhExchLoss >= 0.05 ? ' + fjernvarmeveksler' : ' & rør'}`,
+          val: m.lossDHWInst, color: t.lossTech
         });
       }
 
-      // =========================================================================
-      // KREDSLØB 3: EL TIL BYGNINGSDRIFT & SOLCELLER (PR. ANLÆG)
-      // =========================================================================
+      // Kredsløb 3: El-kredsløb & Solceller (proportional månedlig fordeling)
       const elSources = [];
-      let remElDemandForPV = m.totalBuildingEl;
-      m.pvCalculated.forEach((pvU, idx) => {
-        if (pvU.kwhM2 < 0.05) return;
-        const usedHere = Math.min(pvU.kwhM2, remElDemandForPV);
-        remElDemandForPV = Math.max(0, remElDemandForPV - usedHere);
-        const exportHere = Math.max(0, pvU.kwhM2 - usedHere);
+      const activePVs = m.pvCalculated.filter(u => u.kwhM2 >= 0.05);
+      const pvSelfRatio = m.solceller > 0 ? (m.pvSelfUsed / m.solceller) : 0;
+      activePVs.forEach((pvU, idx) => {
+        const usedHere = pvU.kwhM2 * pvSelfRatio;
+        const expHere = Math.max(0, pvU.kwhM2 - usedHere);
         const shownVal = showPVExp ? pvU.kwhM2 : usedHere;
         if (shownVal < 0.05) return;
-
         elSources.push({
           id: `pv_${idx}`,
           label: `Solcelleanlæg ${idx + 1} — ${pvU.name} (${fmt(pvU.activeAreaM2, 1)} m²)`,
-          sub: `${pvU.orient} ${pvU.slope}° · ${fmt(pvU.kwp, 2)} kWp (${Math.round(pvU.kwhYear)} kWh/år)`,
-          val: shownVal,
-          usedVal: usedHere,
-          expVal: showPVExp ? exportHere : 0,
-          color: idx % 2 === 0 ? t.solarPV : t.solarPV2,
-          isPV: true
+          sub: `${pvU.orient} ${pvU.slope}° · ${fmt(pvU.kwp, 2)} kWp · Eget ${fmt(usedHere)} / Eksport ${fmt(expHere)}`,
+          val: shownVal, usedVal: usedHere, expVal: showPVExp ? expHere : 0,
+          color: idx % 2 === 0 ? t.solarPV : t.solarPV2
         });
       });
 
       if (m.purchasedEl >= 0.05) {
         elSources.push({
-          id: 'gridEl',
-          label: 'Købt El fra Net',
-          sub: 'Netto el-indkøb til bygningsdrift',
-          val: m.purchasedEl,
-          usedVal: m.purchasedEl,
-          expVal: 0,
-          color: t.supplyEl,
-          isPV: false
+          id: 'gridEl', label: 'Købt el fra elnet',
+          sub: m.solceller > 0 ? 'Vinter-/månedsunderskud ud over PV' : 'Netkøb til bygningsdrift',
+          val: m.purchasedEl, usedVal: m.purchasedEl, expVal: 0, color: t.supplyEl
         });
       }
 
       const elSinkParts = [];
-      if (m.hpElTotal >= 0.05) {
+      if (m.hpElRoom >= 0.05) {
         elSinkParts.push({
-          id: 'hpEl',
-          label: 'El til Varmepumpe (Kompressor)',
-          sub: `Driver ${fmt(m.hpYieldTotal)} kWh/m² varme i Rum & VBV`,
-          val: m.hpElTotal,
-          color: t.supplyEl
+          id: 'hpElRoom', label: 'Varmepumpe el — Rumopvarmning',
+          sub: `Driver ${fmt(m.hpYieldRoom)} kWh/m² varme`, val: m.hpElRoom, color: t.supplyEl
         });
       }
-      if (m.pumpsEl + m.fansEl >= 0.05) {
+      if (m.hpElDHW >= 0.05) {
         elSinkParts.push({
-          id: 'pumpsEl',
-          label: 'El til Pumper & Styring',
-          sub: 'Cirkulationspumpe & solfangerpumpe',
-          val: m.pumpsEl + m.fansEl,
-          color: '#527991'
+          id: 'hpElDHW', label: 'Varmepumpe el — Varmt brugsvand',
+          sub: `Driver ${fmt(m.hpYieldDHW)} kWh/m² VBV`, val: m.hpElDHW, color: '#4c738c'
+        });
+      }
+      if (m.pumpsEl >= 0.05) {
+        elSinkParts.push({
+          id: 'pumpsEl', label: 'Pumper & styring',
+          sub: `Fordelings- & solfangerpumpe`, val: m.pumpsEl, color: '#6b8fa3'
+        });
+      }
+      if (m.fansEl >= 0.05) {
+        elSinkParts.push({
+          id: 'fansEl', label: 'Ventilatorer (mek. ventilation)',
+          sub: `SFP / SEL drift`, val: m.fansEl, color: '#82a2b5'
         });
       }
 
-      // Beregn fælles vertikal skalering
-      const totalValAll =
-        spaceSources.reduce((a, b) => a + b.val, 0) +
-        dhwSources.reduce((a, b) => a + b.val, 0) +
-        elSources.reduce((a, b) => a + b.val, 0);
+      // ---- 2. HJÆLPER TIL AT TEGNE ET KREDSLØB-KORT MED GARANTERET NO-OVERLAP ----
+      function renderCircuitCard({ title, badge, yTop, totalFlowPx, sources, sinksLeftAlignSplit, rightUnifiedTitle, rightUnifiedColor, rightUnifiedTotal, rightParts, extraSink }) {
+        const padTop = 46;
+        const padBot = 18;
+        const sumVal = Math.max(0.01, sources.reduce((a, s) => a + s.val, 0));
+        const scale = totalFlowPx / sumVal;
 
-      const scale = 305 / Math.max(50, totalValAll);
-      const xLeft = 290;
-      const xRight = 945;
-      const barW = 20;
+        // Venstre kilde-søjler (med præcis proportional højde)
+        const srcGap = 8;
+        let curYL = yTop + padTop;
+        const srcNodes = sources.map(s => {
+          const h = Math.max(3, s.val * scale);
+          const node = { ...s, y: curYL, h, targetY: curYL + h / 2 };
+          curYL += h + srcGap;
+          return node;
+        });
 
-      let ribbons = '';
-      let leftVisuals = '';
-      let rightVisuals = '';
+        // Højre modtager-søjler
+        const totalUtilH = srcNodes.reduce((a, b) => a + b.h * (b.utilRatio ?? (b.utilVal !== undefined ? (b.utilVal / Math.max(1e-6, b.val)) : 1)), 0);
+        const totalExtraH = srcNodes.reduce((a, b) => {
+          if (b.extraRatio !== undefined) return a + b.h * b.extraRatio;
+          const ev = b.extraVal !== undefined ? b.extraVal : (b.unutilVal !== undefined ? b.unutilVal : 0);
+          return a + b.h * (ev / Math.max(1e-6, b.val));
+        }, 0);
 
-      // ---------------- TEGN KREDSLØB 1 (RUMOPVARMNING) ----------------
-      let curYL = 58;
-      const gapL1 = 10;
-      spaceSources.forEach(s => {
-        s.h = Math.max(5, s.val * scale);
-        s.y = curYL;
-        curYL += s.h + gapL1;
-      });
+        const yBlockStart = yTop + padTop;
+        let curYR = yBlockStart;
+        const partNodes = rightParts.map(p => {
+          const partSum = Math.max(0.001, rightParts.reduce((a, x) => a + x.val, 0));
+          const h = (p.val / partSum) * totalUtilH;
+          const node = { ...p, y: curYR, h, targetY: curYR + h / 2 };
+          curYR += h;
+          return node;
+        });
 
-      // Højre side Kredsløb 1: Sammenhængende blok for Bygningsvarmetab (uden mellemrum mellem Transmission, Ventilation og Rør!)
-      const ySpaceBlockStart = 58;
-      const totalSpaceUtilH = spaceSources.reduce((a, b) => a + (b.h * (b.utilVal / Math.max(0.001, b.val))), 0);
-      let curYSpaceRight = ySpaceBlockStart;
+        const yExtraStart = curYR + 14;
+        const extraNode = (extraSink && totalExtraH > 0.4)
+          ? { ...extraSink, y: yExtraStart, h: totalExtraH, targetY: yExtraStart + totalExtraH / 2 }
+          : null;
 
-      spaceLossParts.forEach(p => {
-        p.h = (p.val / Math.max(0.001, m.spaceHeatGross)) * totalSpaceUtilH;
-        p.y = curYSpaceRight;
-        curYSpaceRight += p.h;
-      });
+        // Beregn label-slots på venstre & højre side med mindst 30 px mellemrum
+        const minLabelGap = 31;
+        const leftLabelYs = layoutLabelSlots(srcNodes, minLabelGap, yTop + padTop + 10);
+        const rightAll = extraNode ? [...partNodes, extraNode] : [...partNodes];
+        const rightLabelYs = layoutLabelSlots(rightAll, minLabelGap, yTop + padTop + 12);
 
-      // Ej udnyttet sol & intern varme lige under den sammenhængende bygningstabs-blok
-      const totalSpaceUnutilH = spaceSources.reduce((a, b) => a + (b.h * (b.unutilVal / Math.max(0.001, b.val))), 0);
-      const yUnutilStart = curYSpaceRight + 10;
-      let curUnutilIn = 0;
+        const maxBarBottom = Math.max(curYL - srcGap, extraNode ? (extraNode.y + extraNode.h) : curYR);
+        const maxLblBottom = Math.max(
+          leftLabelYs.length ? leftLabelYs[leftLabelYs.length - 1] + 16 : 0,
+          rightLabelYs.length ? rightLabelYs[rightLabelYs.length - 1] + 16 : 0
+        );
+        const cardBottom = Math.max(maxBarBottom, maxLblBottom) + padBot;
+        const cardH = cardBottom - yTop;
 
-      // Bånd for Kredsløb 1 (Rumvarme-kilder -> Samlet Bygningsvarmetab + Ej udnyttet)
-      let curSpaceSinkOffset = 0;
-      spaceSources.forEach(s => {
-        const utilRatio = s.val > 0 ? (s.utilVal / s.val) : 1;
-        const hUtil = s.h * utilRatio;
-        const hUnutil = s.h - hUtil;
-
-        if (hUtil > 0.05) {
-          ribbons += bezierRibbon(xLeft + barW, s.y, xRight, ySpaceBlockStart + curSpaceSinkOffset, hUtil, s.color, 0.72);
-          curSpaceSinkOffset += hUtil;
-        }
-        if (showUnutil && hUnutil > 0.05) {
-          ribbons += bezierRibbon(xLeft + barW, s.y + hUtil, xRight, yUnutilStart + curUnutilIn, hUnutil, t.unutilized, 0.55);
-          curUnutilIn += hUnutil;
-        }
-
-        leftVisuals += `
-          <g>
-            <rect x="${xLeft}" y="${s.y}" width="${barW}" height="${s.h}" rx="2" fill="${s.color}"/>
-            <text x="${xLeft - 12}" y="${s.y + Math.min(13, s.h / 2 + 3)}" text-anchor="end" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#1f1e1b">${s.label}</text>
-            <text x="${xLeft - 12}" y="${s.y + Math.min(25, s.h / 2 + 15)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${fmt(s.val)} kWh/m² · ${s.sub}</text>
-          </g>
+        let out = `
+          <rect x="20" y="${yTop}" width="${W - 40}" height="${cardH}" rx="6" fill="#fcfbf9" stroke="#e4e0d5"/>
+          <rect x="20" y="${yTop}" width="${W - 40}" height="26" rx="6" fill="#f3f0e8"/>
+          <rect x="20" y="${yTop + 20}" width="${W - 40}" height="6" fill="#f3f0e8"/>
+          <text x="34" y="${yTop + 17}" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#1f1e1b">${svgEsc(title)}</text>
+          <text x="${W - 34}" y="${yTop + 17}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="#5e5a52">${svgEsc(badge)}</text>
         `;
-      });
 
-      // Tegn den sammenhængende Bygningsvarmetab-blok på højre side med klamme/ramme og individuelle del-labels
-      rightVisuals += `
-        <rect x="${xRight - 2}" y="${ySpaceBlockStart - 2}" width="${barW + 4}" height="${totalSpaceUtilH + 4}" rx="3" fill="none" stroke="#1f1e1b" stroke-width="1.2"/>
-        <text x="${xRight + barW + 12}" y="${ySpaceBlockStart - 6}" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="#c85a3d">SAMLET BYGNINGSVARMETAB (${fmt(m.spaceHeatGross)} kWh/m² — Netto rumvarme: ${fmt(m.netSpaceHeatDemand)} kWh/m²):</text>
+        // Bånd (ribbons)
+        let utilOffset = 0;
+        let extraOffset = 0;
+        srcNodes.forEach((s, idx) => {
+          const uRatio = s.utilRatio ?? (s.utilVal !== undefined ? (s.utilVal / Math.max(1e-6, s.val)) : 1);
+          const hU = s.h * uRatio;
+          const hE = s.h - hU;
+          if (hU > 0.05) {
+            out += bezierRibbon(xLeftBar + barW, s.y, xRightBar, yBlockStart + utilOffset, hU, s.color, 0.74);
+            utilOffset += hU;
+          }
+          if (extraNode && hE > 0.05) {
+            out += bezierRibbon(xLeftBar + barW, s.y + hU, xRightBar, extraNode.y + extraOffset, hE, extraNode.color, 0.56);
+            extraOffset += hE;
+          }
+
+          // Venstre søjle + evt. lederlinje + label
+          const ly = leftLabelYs[idx];
+          const anchorX = xLeftBar - 12;
+          out += `<rect x="${xLeftBar}" y="${s.y}" width="${barW}" height="${s.h}" rx="2" fill="${s.color}"/>`;
+          if (Math.abs(ly - s.targetY) > 3) {
+            out += `<polyline points="${xLeftBar - 2},${s.targetY.toFixed(1)} ${xLeftBar - 7},${ly.toFixed(1)} ${anchorX + 2},${ly.toFixed(1)}" fill="none" stroke="#b8b2a6" stroke-width="0.9"/>`;
+          }
+          out += `
+            <text x="${anchorX}" y="${ly - 2}" text-anchor="end" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#1f1e1b">${svgEsc(s.label)}</text>
+            <text x="${anchorX}" y="${ly + 11}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${fmt(s.val)} kWh/m² · ${svgEsc(s.sub)}</text>
+          `;
+        });
+
+        // Højre samlet blok-ramme & overskrift
+        if (totalUtilH > 0.5) {
+          out += `
+            <rect x="${xRightBar - 2}" y="${yBlockStart - 2}" width="${barW + 4}" height="${totalUtilH + 4}" rx="3" fill="none" stroke="${rightUnifiedColor}" stroke-width="1.3"/>
+            <text x="${xRightBar + barW + 12}" y="${yBlockStart - 6}" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="${rightUnifiedColor}">${svgEsc(rightUnifiedTitle)} (${fmt(rightUnifiedTotal)} kWh/m²):</text>
+          `;
+        }
+
+        // Højre del-søjler + labels
+        rightAll.forEach((p, idx) => {
+          const isExtra = extraNode && idx === rightAll.length - 1;
+          const ly = rightLabelYs[idx];
+          const anchorX = xRightBar + barW + 12;
+          out += `<rect x="${xRightBar}" y="${p.y}" width="${barW}" height="${p.h}" ${isExtra ? 'rx="2"' : ''} fill="${p.color}"/>`;
+          if (!isExtra && idx > 0) {
+            out += `<line x1="${xRightBar}" y1="${p.y}" x2="${xRightBar + barW}" y2="${p.y}" stroke="#ffffff" stroke-width="1.2"/>`;
+          }
+          if (Math.abs(ly - p.targetY) > 3) {
+            out += `<polyline points="${xRightBar + barW + 2},${p.targetY.toFixed(1)} ${xRightBar + barW + 7},${ly.toFixed(1)} ${anchorX - 2},${ly.toFixed(1)}" fill="none" stroke="#b8b2a6" stroke-width="0.9"/>`;
+          }
+          const prefix = isExtra ? '' : '↳ ';
+          const lblColor = isExtra ? (extraSink.textColor || '#5e5a52') : '#1f1e1b';
+          out += `
+            <text x="${anchorX}" y="${ly - 2}" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="${lblColor}">${prefix}${svgEsc(p.label)} (${fmt(p.val)} kWh/m²)</text>
+            <text x="${anchorX + (isExtra ? 0 : 12)}" y="${ly + 11}" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${svgEsc(p.sub)}</text>
+          `;
+        });
+
+        return { svg: out, bottomY: cardBottom };
+      }
+
+      // ---- 3. TOP SUMMARY & ENERGIRAMME GAUGE ----
+      const brRatio = Math.min(1.0, m.totalPrimaryEnergy / Math.max(1, m.limitBR18 * 1.2));
+      const limitPos = Math.min(1.0, m.limitBR18 / Math.max(1, m.limitBR18 * 1.2));
+      const lowPos = Math.min(1.0, m.limitLowEnergy / Math.max(1, m.limitBR18 * 1.2));
+      const gaugeW = 190;
+      const brColor = m.totalPrimaryEnergy <= m.limitBR18 ? '#21633b' : '#b8332a';
+
+      let svgContent = `
+        <g>
+          <rect x="20" y="12" width="308" height="68" rx="5" fill="#faf8f5" stroke="#dedad0"/>
+          <text x="32" y="30" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="${t.supplyHeat}">1 // RUMOPVARMNING (NETTO)</text>
+          <text x="32" y="51" font-family="IBM Plex Mono, monospace" font-size="17" font-weight="700" fill="#1f1e1b">${fmt(m.netSpaceHeatDemand)} kWh/m²</text>
+          <text x="32" y="68" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" fill="#5e5a52">Tab ${fmt(m.spaceHeatGross)} − Gratis ${fmt(m.utilizedFreeGains)} (η=${fmt(m.eta * 100, 0)}%)</text>
+
+          <rect x="338" y="12" width="308" height="68" rx="5" fill="#faf8f5" stroke="#dedad0"/>
+          <text x="350" y="30" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="${t.solarThermal}">2 // VARMT BRUGSVAND (BRUTTO)</text>
+          <text x="350" y="51" font-family="IBM Plex Mono, monospace" font-size="17" font-weight="700" fill="#1f1e1b">${fmt(m.totalDHWGross)} kWh/m²</text>
+          <text x="350" y="68" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" fill="#5e5a52">Solfanger ${fmt(m.utilizedSolfanger)} + Tilført ${fmt(m.remDHWDemand)}</text>
+
+          <rect x="656" y="12" width="308" height="68" rx="5" fill="#faf8f5" stroke="#dedad0"/>
+          <text x="668" y="30" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="${t.supplyEl}">3 // EL-DRIFT &amp; SOLCELLER</text>
+          <text x="668" y="51" font-family="IBM Plex Mono, monospace" font-size="17" font-weight="700" fill="#1f1e1b">${fmt(m.totalBuildingEl)} kWh/m² el</text>
+          <text x="668" y="68" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" fill="#5e5a52">PV ${fmt(m.solceller)} (${fmt(m.pvSelfUsed)} eget / ${fmt(m.pvExported)} eksp.) · Køb ${fmt(m.purchasedEl)}</text>
+
+          <rect x="974" y="12" width="326" height="68" rx="5" fill="#f4f8f5" stroke="${brColor}" stroke-opacity="0.45"/>
+          <text x="986" y="30" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="${brColor}">4 // BR18 ENERGIRAMME (KRAV ≤ ${fmt(m.limitBR18)})</text>
+          <text x="986" y="50" font-family="IBM Plex Mono, monospace" font-size="16" font-weight="700" fill="${brColor}">${fmt(m.totalPrimaryEnergy)} kWh/m²</text>
+          <text x="1286" y="50" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="${brColor}">${m.totalPrimaryEnergy <= m.limitBR18 ? 'OVERHOLDT' : 'OVERSKREDET'}</text>
+          <rect x="986" y="58" width="${gaugeW}" height="8" rx="2" fill="#e2dfd7"/>
+          <rect x="986" y="58" width="${Math.max(3, brRatio * gaugeW)}" height="8" rx="2" fill="${brColor}"/>
+          <line x1="${986 + lowPos * gaugeW}" y1="55" x2="${986 + lowPos * gaugeW}" y2="69" stroke="#21633b" stroke-width="1.3" stroke-dasharray="2 1"/>
+          <line x1="${986 + limitPos * gaugeW}" y1="54" x2="${986 + limitPos * gaugeW}" y2="70" stroke="#1f1e1b" stroke-width="1.8"/>
+          <text x="1286" y="65" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#5e5a52">Lav: 27 · Krav: ${fmt(m.limitBR18)}</text>
+        </g>
       `;
-      spaceLossParts.forEach((p, idx) => {
-        rightVisuals += `
-          <g>
-            <rect x="${xRight}" y="${p.y}" width="${barW}" height="${p.h}" fill="${p.color}"/>
-            ${idx > 0 ? `<line x1="${xRight}" y1="${p.y}" x2="${xRight + barW}" y2="${p.y}" stroke="#ffffff" stroke-width="1.2"/>` : ''}
-            <text x="${xRight + barW + 12}" y="${p.y + Math.min(14, p.h / 2 + 3)}" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#1f1e1b">↳ ${p.label} (${fmt(p.val)} kWh/m²)</text>
-            <text x="${xRight + barW + 24}" y="${p.y + Math.min(26, p.h / 2 + 15)}" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${p.sub}</text>
-          </g>
-        `;
+
+      // ---- 4. RENDER DE TRE KREDSLØB ----
+      const c1 = renderCircuitCard({
+        title: 'KREDSLØB 1 // RUMOPVARMNING & BYGNINGENS VARMETAB',
+        badge: `Skala: Rumvarme · Brutto flow ${fmt(spaceSources.reduce((a, b) => a + b.val, 0))} kWh/m²`,
+        yTop: 94,
+        totalFlowPx: 195,
+        sources: spaceSources,
+        rightUnifiedTitle: 'SAMLET BYGNINGSVARMETAB',
+        rightUnifiedColor: '#c85a3d',
+        rightUnifiedTotal: m.spaceHeatGross,
+        rightParts: spaceLossParts,
+        extraSink: showUnutil ? {
+          label: 'Ej udnyttet sol & intern varme',
+          sub: `Bortventileret sommeroverskud (årlig gennemsnitlig η = ${fmt(m.eta * 100, 1)}%)`,
+          val: m.unutilizedFreeGains,
+          color: t.unutilized,
+          textColor: '#5e5a52'
+        } : null
       });
+      svgContent += c1.svg;
 
-      if (showUnutil && totalSpaceUnutilH > 0.5) {
-        rightVisuals += `
-          <g>
-            <rect x="${xRight}" y="${yUnutilStart}" width="${barW}" height="${totalSpaceUnutilH}" rx="2" fill="${t.unutilized}"/>
-            <text x="${xRight + barW + 12}" y="${yUnutilStart + Math.min(13, totalSpaceUnutilH / 2 + 3)}" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="700" fill="#5e5a52">Ej Udnyttet Sol &amp; Intern Varme (${fmt(m.unutilizedFreeGains)} kWh/m²)</text>
-            <text x="${xRight + barW + 12}" y="${yUnutilStart + Math.min(25, totalSpaceUnutilH / 2 + 15)}" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#7a756c">Bortventileret sommeroverskud (η = ${fmt(m.eta * 100, 1)}%)</text>
-          </g>
-        `;
-      }
-
-      // ---------------- TEGN KREDSLØB 2 (VARMT BRUGSVAND & BEHOLDERTAB) ----------------
-      const yCircuit2Start = Math.max(curYL, showUnutil ? (yUnutilStart + totalSpaceUnutilH + 26) : (curYSpaceRight + 28));
-      let curYL2 = yCircuit2Start;
-      dhwSources.forEach(s => {
-        s.h = Math.max(5, s.val * scale);
-        s.y = curYL2;
-        curYL2 += s.h + 9;
+      const c2 = renderCircuitCard({
+        title: 'KREDSLØB 2 // VARMT BRUGSVAND (VBV) & SOLVARME',
+        badge: `Skala: VBV · Brutto behov ${fmt(m.totalDHWGross)} kWh/m²`,
+        yTop: c1.bottomY + 14,
+        totalFlowPx: 74,
+        sources: dhwSources,
+        rightUnifiedTitle: 'VARMT BRUGSVAND INKL. TAB',
+        rightUnifiedColor: '#c86d24',
+        rightUnifiedTotal: m.totalDHWGross,
+        rightParts: dhwLossParts,
+        extraSink: null
       });
+      svgContent += c2.svg;
 
-      const totalDHWH = dhwSources.reduce((a, b) => a + b.h, 0);
-      const yDHWBlockStart = yCircuit2Start;
-      let curYDHWRight = yDHWBlockStart;
-      dhwLossParts.forEach(p => {
-        p.h = (p.val / Math.max(0.001, m.totalDHWGross)) * totalDHWH;
-        p.y = curYDHWRight;
-        curYDHWRight += p.h;
+      const elMappedSources = elSources.map(s => ({
+        ...s,
+        utilRatio: s.val > 0 ? (s.usedVal / s.val) : 1,
+        extraRatio: s.val > 0 ? (s.expVal / s.val) : 0
+      }));
+      const elFlowSum = elSources.reduce((a, b) => a + b.val, 0);
+
+      const c3 = renderCircuitCard({
+        title: 'KREDSLØB 3 // EL TIL BYGNINGSDRIFT & SOLCELLER (MÅNEDLIG FYSISK FORDELING)',
+        badge: `Skala: El · Flow ${fmt(elFlowSum)} kWh_el/m²`,
+        yTop: c2.bottomY + 14,
+        totalFlowPx: 92,
+        sources: elMappedSources,
+        rightUnifiedTitle: 'EL TIL BYGNINGSDRIFT',
+        rightUnifiedColor: '#3e6278',
+        rightUnifiedTotal: m.totalBuildingEl,
+        rightParts: elSinkParts,
+        extraSink: showPVExp ? {
+          label: 'Solcelle-overskud eksporteret til elnet',
+          sub: `Sommeroverskud ud over månedligt egetforbrug`,
+          val: m.pvExported,
+          color: t.pvExport,
+          textColor: '#21633b'
+        } : null
       });
+      svgContent += c3.svg;
 
-      let curDHWSinkOffset = 0;
-      dhwSources.forEach(s => {
-        ribbons += bezierRibbon(xLeft + barW, s.y, xRight, yDHWBlockStart + curDHWSinkOffset, s.h, s.color, 0.76);
-        curDHWSinkOffset += s.h;
-
-        leftVisuals += `
-          <g>
-            <rect x="${xLeft}" y="${s.y}" width="${barW}" height="${s.h}" rx="2" fill="${s.color}"/>
-            <text x="${xLeft - 12}" y="${s.y + Math.min(13, s.h / 2 + 3)}" text-anchor="end" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#1f1e1b">${s.label}</text>
-            <text x="${xLeft - 12}" y="${s.y + Math.min(25, s.h / 2 + 15)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${fmt(s.val)} kWh/m² · ${s.sub}</text>
-          </g>
-        `;
-      });
-
-      if (dhwSources.length > 0) {
-        rightVisuals += `
-          <rect x="${xRight - 2}" y="${yDHWBlockStart - 2}" width="${barW + 4}" height="${totalDHWH + 4}" rx="3" fill="none" stroke="#c86d24" stroke-width="1.2"/>
-          <text x="${xRight + barW + 12}" y="${yDHWBlockStart - 5}" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="#c86d24">VARMT BRUGSVAND &amp; INSTALLATIONSTAB (${fmt(m.totalDHWGross)} kWh/m²):</text>
-        `;
-        dhwLossParts.forEach((p, idx) => {
-          rightVisuals += `
-            <g>
-              <rect x="${xRight}" y="${p.y}" width="${barW}" height="${p.h}" fill="${p.color}"/>
-              ${idx > 0 ? `<line x1="${xRight}" y1="${p.y}" x2="${xRight + barW}" y2="${p.y}" stroke="#ffffff" stroke-width="1.2"/>` : ''}
-              <text x="${xRight + barW + 12}" y="${p.y + Math.min(13, p.h / 2 + 4)}" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#1f1e1b">↳ ${p.label} (${fmt(p.val)} kWh/m²)</text>
-              ${p.h >= 18 ? `<text x="${xRight + barW + 24}" y="${p.y + Math.min(25, p.h / 2 + 15)}" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${p.sub}</text>` : ''}
-            </g>
-          `;
-        });
-      }
-
-      // ---------------- TEGN KREDSLØB 3 (EL TIL BYGNINGSDRIFT & SOLCELLER) ----------------
-      const yCircuit3Start = Math.max(curYL2, curYDHWRight) + 24;
-      let curYL3 = yCircuit3Start;
-      elSources.forEach(s => {
-        s.h = Math.max(5, s.val * scale);
-        s.y = curYL3;
-        curYL3 += s.h + 9;
-      });
-
-      const totalElUsedH = elSources.reduce((a, b) => a + (b.h * (b.usedVal / Math.max(0.001, b.val))), 0);
-      const totalElExpH = elSources.reduce((a, b) => a + (b.h * (b.expVal / Math.max(0.001, b.val))), 0);
-
-      const yElBlockStart = yCircuit3Start;
-      let curYElRight = yElBlockStart;
-      elSinkParts.forEach(p => {
-        p.h = (p.val / Math.max(0.001, m.totalBuildingEl)) * totalElUsedH;
-        p.y = curYElRight;
-        curYElRight += p.h;
-      });
-
-      const yPVExpStart = curYElRight + 10;
-      let curElUsedOffset = 0;
-      let curElExpOffset = 0;
-
-      elSources.forEach(s => {
-        const usedRatio = s.val > 0 ? (s.usedVal / s.val) : 1;
-        const hUsed = s.h * usedRatio;
-        const hExp = s.h - hUsed;
-
-        if (hUsed > 0.05) {
-          ribbons += bezierRibbon(xLeft + barW, s.y, xRight, yElBlockStart + curElUsedOffset, hUsed, s.color, 0.78);
-          curElUsedOffset += hUsed;
-        }
-        if (showPVExp && hExp > 0.05) {
-          ribbons += bezierRibbon(xLeft + barW, s.y + hUsed, xRight, yPVExpStart + curElExpOffset, hExp, t.pvExport, 0.72);
-          curElExpOffset += hExp;
-        }
-
-        leftVisuals += `
-          <g>
-            <rect x="${xLeft}" y="${s.y}" width="${barW}" height="${s.h}" rx="2" fill="${s.color}"/>
-            <text x="${xLeft - 12}" y="${s.y + Math.min(13, s.h / 2 + 3)}" text-anchor="end" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#1f1e1b">${s.label}</text>
-            <text x="${xLeft - 12}" y="${s.y + Math.min(25, s.h / 2 + 15)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${fmt(s.val)} kWh/m² · ${s.sub}</text>
-          </g>
-        `;
-      });
-
-      if (elSinkParts.length > 0 && totalElUsedH > 0.1) {
-        rightVisuals += `
-          <rect x="${xRight - 2}" y="${yElBlockStart - 2}" width="${barW + 4}" height="${totalElUsedH + 4}" rx="3" fill="none" stroke="#3e6278" stroke-width="1.2"/>
-          <text x="${xRight + barW + 12}" y="${yElBlockStart - 5}" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="#3e6278">EL TIL BYGNINGSDRIFT (${fmt(m.totalBuildingEl)} kWh/m²):</text>
-        `;
-        elSinkParts.forEach((p, idx) => {
-          rightVisuals += `
-            <g>
-              <rect x="${xRight}" y="${p.y}" width="${barW}" height="${p.h}" fill="${p.color}"/>
-              ${idx > 0 ? `<line x1="${xRight}" y1="${p.y}" x2="${xRight + barW}" y2="${p.y}" stroke="#ffffff" stroke-width="1.2"/>` : ''}
-              <text x="${xRight + barW + 12}" y="${p.y + Math.min(13, p.h / 2 + 4)}" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="700" fill="#1f1e1b">↳ ${p.label} (${fmt(p.val)} kWh/m²)</text>
-            </g>
-          `;
-        });
-      }
-
-      if (showPVExp && totalElExpH > 0.2) {
-        rightVisuals += `
-          <g>
-            <rect x="${xRight}" y="${yPVExpStart}" width="${barW}" height="${totalElExpH}" rx="2" fill="${t.pvExport}"/>
-            <text x="${xRight + barW + 12}" y="${yPVExpStart + Math.min(12, totalElExpH / 2 + 4)}" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="700" fill="#21633b">Solcelle-overskud til Elnet (${fmt(m.pvExported)} kWh/m²)</text>
-          </g>
-        `;
-      }
-
-      // Nederste 12-måneders mini-strip hvis valgt
-      let bottomStrip = '';
+      // ---- 5. NEDERSTE MÅNEDSPROFIL (HVIS VALGT) ----
+      let totalH = c3.bottomY + 18;
       if (showBottom) {
-        const stripY = 575;
-        const stripH = 155;
-        const colW = 78;
-        const startX = 165;
-        const maxMonthVal = Math.max(...m.monthly.map(x => Math.max(x.mLoss, x.mUtil + x.mUnutil + x.mPV)), 14);
+        const stripY = c3.bottomY + 18;
+        const chartTop = stripY + 46;
+        const chartH = 128;
+        const baseLine = chartTop + chartH;
+        const leftMargin = 72;
+        const plotW = W - leftMargin - 40;
+        const colStep = plotW / 12;
+
+        const maxM = Math.max(...m.monthly.map(x => Math.max(x.mTotalHeatDemand, x.mUtilGains + x.mSolfanger + x.mSupplyHeat, x.mPV)), 4);
+        const ax = niceAxis(maxM, 4);
+        const sy = chartH / ax.niceMax;
+
+        let gridSvg = ax.ticks.map(tk => {
+          const gy = baseLine - tk * sy;
+          return `
+            <line x1="${leftMargin}" y1="${gy}" x2="${W - 40}" y2="${gy}" stroke="#e7e3da" stroke-width="1" stroke-dasharray="3 3"/>
+            <text x="${leftMargin - 8}" y="${gy + 3}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9" fill="#7a756c">${fmt(tk, ax.step < 1 ? 1 : 0)}</text>
+          `;
+        }).join('');
 
         const bars = m.monthly.map((mo, idx) => {
-          const cx = startX + idx * colW;
-          const hLoss = (mo.mLoss / maxMonthVal) * 115;
-          const hUtil = (mo.mUtil / maxMonthVal) * 115;
-          const hUnutil = (mo.mUnutil / maxMonthVal) * 115;
-          const hPV = (mo.mPV / maxMonthVal) * 115;
-          const baseLine = stripY + stripH;
+          const cx = leftMargin + idx * colStep + 14;
+          const hHeatLoss = mo.mTotalHeatDemand * sy;
+          const hFreeUtil = mo.mUtilGains * sy;
+          const hSC = mo.mSolfanger * sy;
+          const hSup = mo.mSupplyHeat * sy;
+          const hPV = mo.mPV * sy;
 
           return `
             <g>
-              <rect x="${cx}" y="${baseLine - hLoss}" width="18" height="${hLoss}" rx="1.5" fill="${t.lossTrans}" fill-opacity="0.85"/>
-              <rect x="${cx + 21}" y="${baseLine - hUtil}" width="18" height="${hUtil}" rx="1.5" fill="${t.solarPassiv}"/>
-              <rect x="${cx + 21}" y="${baseLine - hUtil - hUnutil}" width="18" height="${hUnutil}" rx="1.5" fill="${t.unutilized}"/>
-              ${hPV > 0.3 ? `<rect x="${cx + 42}" y="${baseLine - hPV}" width="10" height="${hPV}" rx="1.5" fill="${t.solarPV}"/>` : ''}
-              <text x="${cx + 20}" y="${baseLine + 16}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="#5e5a52">${mo.month}</text>
-              <text x="${cx + 9}" y="${baseLine - hLoss - 4}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#7a756c">${fmt(mo.mLoss, 1)}</text>
+              <rect x="${cx}" y="${baseLine - hHeatLoss}" width="20" height="${hHeatLoss}" rx="1.5" fill="${t.lossTrans}" fill-opacity="0.88"/>
+              <rect x="${cx + 23}" y="${baseLine - hFreeUtil}" width="20" height="${hFreeUtil}" fill="${t.solarPassiv}"/>
+              <rect x="${cx + 23}" y="${baseLine - hFreeUtil - hSC}" width="20" height="${hSC}" fill="${t.solarThermal}"/>
+              <rect x="${cx + 23}" y="${baseLine - hFreeUtil - hSC - hSup}" width="20" height="${hSup}" rx="1.5" fill="${t.supplyHeat}"/>
+              ${hPV > 0.4 ? `<rect x="${cx + 46}" y="${baseLine - hPV}" width="12" height="${hPV}" rx="1.5" fill="${t.solarPV}"/>` : ''}
+              <text x="${cx + 28}" y="${baseLine + 16}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="#1f1e1b">${mo.month}</text>
+              <text x="${cx + 28}" y="${baseLine + 28}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#7a756c">${fmt(mo.mSupplyHeat, 1)}</text>
             </g>
           `;
         }).join('');
 
-        bottomStrip = `
-          <line x1="40" y1="545" x2="1240" y2="545" stroke="#e4e1d8" stroke-width="1" stroke-dasharray="4 4"/>
-          <text x="45" y="568" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#c85a3d">MÅNEDLIG SÆSONPROFIL (JAN–DEC) // KWH/M² PR. MÅNED (VENSTRE: VARMETAB · MIDT: SOL &amp; INTERN VARME · HØJRE: SOLCELLER)</text>
+        svgContent += `
+          <rect x="20" y="${stripY}" width="${W - 40}" height="${baseLine - stripY + 42}" rx="6" fill="#fcfbf9" stroke="#e4e0d5"/>
+          <text x="34" y="${stripY + 20}" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#c85a3d">MÅNEDLIG SÆSONPROFIL (JAN–DEC) // KWH/M² PR. MÅNED</text>
+          <text x="${W - 34}" y="${stripY + 20}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">Venstre søjle: Varmetab (Rum+VBV) · Midt: Gratis + Solv. + Tilført varme · Højre: Solceller (el) · Bundtal: Tilført varme</text>
+          ${gridSvg}
+          <line x1="${leftMargin}" y1="${baseLine}" x2="${W - 40}" y2="${baseLine}" stroke="#1f1e1b" stroke-width="1.2"/>
           ${bars}
         `;
+        totalH = baseLine + 56;
       }
 
       return `
-        <svg id="mainPlancheSvg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-          <rect width="${W}" height="${H}" fill="#ffffff"/>
-          <text x="${xLeft}" y="30" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#5e5a52">01 // ENERGIKILDER &amp; TILSKUD (OPDELT PÅ RUMVARME, VBV &amp; EL)</text>
-          <text x="${xRight + barW}" y="30" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#5e5a52">02 // SAMMENHÆNGENDE BYGNINGSTAB, VBV &amp; EL-DRIFT</text>
-          <line x1="30" y1="40" x2="1250" y2="40" stroke="#e4e1d8" stroke-width="1"/>
-          ${ribbons}
-          ${leftVisuals}
-          ${rightVisuals}
-          ${bottomStrip}
+        <svg id="mainPlancheSvg" viewBox="0 0 ${W} ${totalH}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${totalH}" fill="#ffffff"/>
+          ${svgContent}
         </svg>
       `;
     }
 
-    // ----------------- TAB 02: SOLCELLER (PR. ANLÆG), SOLFANGER & PASSIV SOL -----------------
+    // ----------------- TAB 02: SOLCELLER, SOLFANGER, PASSIV SOL & UDNYTTELSE -----------------
     function buildTab02SolarSVG() {
       const m = MODEL;
       const d = m.bexml;
       const t = m.theme;
-      const W = 1280;
-      const H = 620;
+      const W = 1320;
 
+      // ---- PANEL A (TOP LEFT): PASSIVT SOLINDFALD PR. VINDUE ----
       const activeWins = d.windowList.filter(w => w.area > 0);
-      const maxWinKwh = Math.max(...activeWins.map(w => w.qSolKwh), 400);
+      const maxWinUnshaded = Math.max(...activeWins.map(w => w.qSolUnshaded), 300);
+      const winAx = niceAxis(maxWinUnshaded, 4);
+      const barStartX = 28;
+      const barMaxW = 340;
 
-      const winBars = activeWins.map((w, idx) => {
-        const y = 95 + idx * 70;
-        const barMaxW = 340;
-        const wUnshaded = Math.min(barMaxW, ((w.qSolKwh / Math.max(0.1, w.fShade)) / (maxWinKwh * 1.35)) * barMaxW);
-        const wActual = (w.qSolKwh / (maxWinKwh * 1.35)) * barMaxW;
-
+      const winRowsSvg = activeWins.map((w, idx) => {
+        const y = 92 + idx * 64;
+        const wUnsh = (w.qSolUnshaded / winAx.niceMax) * barMaxW;
+        const wNet = (w.qSolKwh / winAx.niceMax) * barMaxW;
+        const shadeLossPct = Math.round((1 - w.fShade) * 100);
         return `
           <g>
-            <text x="45" y="${y}" font-family="Plus Jakarta Sans, sans-serif" font-size="12" font-weight="700" fill="#1f1e1b">${w.id} (${w.orient} ${w.slope}° · ${fmt(w.area, 2)} m²)</text>
-            <text x="45" y="${y + 15}" font-family="IBM Plex Mono, monospace" font-size="9.8" fill="#5e5a52">g=${w.g} · FF=${w.ff} · Skygge: hor=${w.shading.horizon}°, udh=${w.shading.overhang}°, finV=${w.shading.sidefin_left}° (Fs=${fmt(w.fShade, 2)})</text>
-            <rect x="45" y="${y + 22}" width="${wUnshaded}" height="13" rx="2" fill="#e6e1d6"/>
-            <rect x="45" y="${y + 22}" width="${wActual}" height="13" rx="2" fill="${t.solarPassiv}"/>
-            <text x="${45 + wUnshaded + 10}" y="${y + 33}" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#1f1e1b">${fmt(w.qSolKwh, 0)} kWh/år (${fmt(w.qSolKwh / d.ae, 2)} kWh/m²)</text>
+            <text x="${barStartX}" y="${y}" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#1f1e1b">${svgEsc(w.id)} · ${w.orient} ${w.slope}° (${fmt(w.area, 2)} m² · g=${fmt(w.g, 2)} · FF=${fmt(w.ff, 2)})</text>
+            <text x="${barStartX}" y="${y + 14}" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">Skygge: ${svgEsc(w.shading.id)} (hor ${w.shading.horizon}°, udh ${w.shading.overhang}°, fin ${w.shading.sidefin_left}°/${w.shading.sidefin_right}°) → −${shadeLossPct}%</text>
+            <rect x="${barStartX}" y="${y + 21}" width="${barMaxW}" height="14" rx="2" fill="#f3f0e8"/>
+            <rect x="${barStartX}" y="${y + 21}" width="${Math.max(2, wUnsh)}" height="14" rx="2" fill="#ddd6c8"/>
+            <rect x="${barStartX}" y="${y + 21}" width="${Math.max(2, wNet)}" height="14" rx="2" fill="${t.solarPassiv}"/>
+            <text x="${barStartX + barMaxW + 14}" y="${y + 32}" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#1f1e1b">${Math.round(w.qSolKwh)} kWh/år <tspan fill="#5e5a52" font-weight="500">(${fmt(w.qSolKwh / d.ae, 1)} kWh/m²)</tspan></text>
+            <text x="${barStartX + barMaxW + 14}" y="${y + 44}" font-family="IBM Plex Mono, monospace" font-size="8.8" fill="#8c877d">Før skygge: ${Math.round(w.qSolUnshaded)} kWh/år</text>
           </g>
         `;
       }).join('');
 
-      let rightY = 90;
-      const pvUnitCards = m.pvCalculated.map((u, idx) => {
+      const winAxisY = 92 + Math.max(1, activeWins.length) * 64 + 6;
+      const winTicksSvg = winAx.ticks.map(tk => {
+        const tx = barStartX + (tk / winAx.niceMax) * barMaxW;
+        return `
+          <line x1="${tx}" y1="84" x2="${tx}" y2="${winAxisY - 6}" stroke="#eae6dd" stroke-width="0.9" stroke-dasharray="2 2"/>
+          <line x1="${tx}" y1="${winAxisY - 4}" x2="${tx}" y2="${winAxisY + 1}" stroke="#8c877d" stroke-width="1"/>
+          <text x="${tx}" y="${winAxisY + 12}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#7a756c">${Math.round(tk)}</text>
+        `;
+      }).join('');
+
+      const winSummaryY = winAxisY + 26;
+      const totalUnshadedKwh = activeWins.reduce((a, w) => a + w.qSolUnshaded, 0);
+      const totalShadedKwh = activeWins.reduce((a, w) => a + w.qSolKwh, 0);
+
+      // ---- PANEL B (TOP RIGHT): SOLCELLER & SOLFANGER ----
+      let rightY = 82;
+      const panelRightX = 676;
+      const panelRightW = 620;
+      const trackW = 588;
+
+      const pvCardsSvg = m.pvCalculated.map((u, idx) => {
         const y = rightY;
-        rightY += 86;
-        const barW = Math.min(340, (u.kwhM2 / 12) * 340);
+        const isActive = u.activeAreaM2 > 0;
+        if (!isActive) {
+          rightY += 42;
+          return `
+            <rect x="${panelRightX}" y="${y}" width="${panelRightW}" height="34" rx="4" fill="#faf9f6" stroke="#dedad0" stroke-dasharray="3 2"/>
+            <text x="${panelRightX + 14}" y="${y + 21}" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="600" fill="#8c877d">Solcelleanlæg ${idx + 1} — ${svgEsc(u.name)} (${u.orient} · ${u.slope}°) · Ikke aktiv i BEXML (${fmt(u.specAreaM2, 1)} m²)</text>
+          `;
+        }
+        rightY += 94;
+        const irradRatio = Math.min(1, u.irradM2 / 1160.0);
+        const fillW = Math.max(4, irradRatio * trackW);
+        const pvSelfRatio = m.solceller > 0 ? (m.pvSelfUsed / m.solceller) : 0;
+        const uSelf = u.kwhM2 * pvSelfRatio;
+        const uExp = Math.max(0, u.kwhM2 - uSelf);
         return `
-          <g>
-            <rect x="670" y="${y}" width="555" height="74" rx="5" fill="#f4f8f5" stroke="#b8d9c4"/>
-            <text x="688" y="${y + 22}" font-family="Plus Jakarta Sans, sans-serif" font-size="12.5" font-weight="700" fill="#1f1e1b">Solcelleanlæg ${idx + 1} — ${u.name} (${u.orient} · ${u.slope}° hældning)</text>
-            <text x="1208" y="${y + 22}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="700" fill="#21633b">${fmt(u.activeAreaM2, 1)} m² → ${fmt(u.kwhM2, 1)} kWh/m²</text>
-            <text x="688" y="${y + 40}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5e5a52">Effekt: ${fmt(u.kwp, 2)} kWp · Virkningsgrad: ${fmt(u.efficiency, 2)} · Årsproduktion: ${Math.round(u.kwhYear)} kWh/år</text>
-            <rect x="688" y="${y + 50}" width="520" height="10" rx="2" fill="#dfece3"/>
-            <rect x="688" y="${y + 50}" width="${Math.max(4, barW)}" height="10" rx="2" fill="${idx % 2 === 0 ? t.solarPV : t.solarPV2}"/>
-          </g>
+          <rect x="${panelRightX}" y="${y}" width="${panelRightW}" height="84" rx="5" fill="#f4f8f5" stroke="#b8d9c4"/>
+          <text x="${panelRightX + 16}" y="${y + 22}" font-family="Plus Jakarta Sans, sans-serif" font-size="12" font-weight="700" fill="#1f1e1b">Solcelleanlæg ${idx + 1} — ${svgEsc(u.name)} (${u.orient} · ${u.slope}° · rot +${d.rotation}°)</text>
+          <text x="${panelRightX + panelRightW - 16}" y="${y + 22}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="700" fill="#21633b">${fmt(u.activeAreaM2, 1)} m² → ${fmt(u.kwhM2, 1)} kWh/m²</text>
+          <text x="${panelRightX + 16}" y="${y + 40}" font-family="IBM Plex Mono, monospace" font-size="9.8" fill="#5e5a52">${fmt(u.kwp, 2)} kWp · ${Math.round(u.kwhYear)} kWh/år (${Math.round(u.kwhPerM2Panel)} kWh/m² panel) · Indstråling ${Math.round(u.irradM2)} / 1160 kWh/m² (${Math.round(irradRatio * 100)}%)</text>
+          <rect x="${panelRightX + 16}" y="${y + 52}" width="${trackW}" height="12" rx="2" fill="#dfece3"/>
+          <rect x="${panelRightX + 16}" y="${y + 52}" width="${fillW}" height="12" rx="2" fill="${idx % 2 === 0 ? t.solarPV : t.solarPV2}"/>
+          <text x="${panelRightX + 16}" y="${y + 76}" font-family="IBM Plex Mono, monospace" font-size="8.8" fill="#21633b">Fysisk månedlig andel: ${fmt(uSelf)} kWh/m² egetforbrug · ${fmt(uExp)} kWh/m² eksport</text>
         `;
       }).join('');
 
-      const scUnitCards = m.scCalculated.map((u, idx) => {
+      const scCardsSvg = m.scCalculated.map((u, idx) => {
         const y = rightY;
-        rightY += 86;
-        const barW = Math.min(340, (u.utilizedKwhM2 / 14) * 340);
+        const isActive = u.activeAreaM2 > 0;
+        if (!isActive) {
+          rightY += 42;
+          return `
+            <rect x="${panelRightX}" y="${y}" width="${panelRightW}" height="34" rx="4" fill="#faf9f6" stroke="#dedad0" stroke-dasharray="3 2"/>
+            <text x="${panelRightX + 14}" y="${y + 21}" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="600" fill="#8c877d">Solfanger — ${svgEsc(u.name)} (${u.orient} · ${u.slope}°) · Ikke aktiv i BEXML (${fmt(u.specAreaM2, 1)} m²)</text>
+          `;
+        }
+        rightY += 94;
+        const dhwShare = m.totalDHWGross > 0 ? Math.min(1, u.utilizedKwhM2 / m.totalDHWGross) : 0;
+        const fillW = Math.max(4, dhwShare * trackW);
         return `
-          <g>
-            <rect x="670" y="${y}" width="555" height="74" rx="5" fill="#fdf6ef" stroke="#ebd3bc"/>
-            <text x="688" y="${y + 22}" font-family="Plus Jakarta Sans, sans-serif" font-size="12.5" font-weight="700" fill="#1f1e1b">Solfangeranlæg — ${u.name} (${u.orient} · ${u.slope}° hældning)</text>
-            <text x="1208" y="${y + 22}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="700" fill="#c86d24">${fmt(u.activeAreaM2, 1)} m² → ${fmt(u.utilizedKwhM2, 1)} kWh/m²</text>
-            <text x="688" y="${y + 40}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5e5a52">Startvirk. η₀=${fmt(u.ny0, 2)} · Kredsvirk.=${fmt(u.ny_loop, 2)} · Dækker ${Math.round(u.utilizedKwhYear)} kWh/år af varmt brugsvand</text>
-            <rect x="688" y="${y + 50}" width="520" height="10" rx="2" fill="#f3e4d6"/>
-            <rect x="688" y="${y + 50}" width="${Math.max(4, barW)}" height="10" rx="2" fill="${t.solarThermal}"/>
-          </g>
+          <rect x="${panelRightX}" y="${y}" width="${panelRightW}" height="84" rx="5" fill="#fdf6ef" stroke="#ebd3bc"/>
+          <text x="${panelRightX + 16}" y="${y + 22}" font-family="Plus Jakarta Sans, sans-serif" font-size="12" font-weight="700" fill="#1f1e1b">Solfanger — ${svgEsc(u.name)} (${u.orient} · ${u.slope}° · rot +${d.rotation}°)</text>
+          <text x="${panelRightX + panelRightW - 16}" y="${y + 22}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="700" fill="#c86d24">${fmt(u.activeAreaM2, 1)} m² → ${fmt(u.utilizedKwhM2, 1)} kWh/m²</text>
+          <text x="${panelRightX + 16}" y="${y + 40}" font-family="IBM Plex Mono, monospace" font-size="9.8" fill="#5e5a52">η₀=${fmt(u.ny0, 2)} · kreds=${fmt(u.ny_loop, 2)} · a₁=${fmt(u.heat_loss_coef, 1)} · Tilskud til VBV: ${Math.round(u.utilizedKwhYear)} kWh/år (${Math.round(dhwShare * 100)}% af VBV)</text>
+          <rect x="${panelRightX + 16}" y="${y + 52}" width="${trackW}" height="12" rx="2" fill="#f3e4d6"/>
+          <rect x="${panelRightX + 16}" y="${y + 52}" width="${fillW}" height="12" rx="2" fill="${t.solarThermal}"/>
+          <text x="${panelRightX + 16}" y="${y + 76}" font-family="IBM Plex Mono, monospace" font-size="8.8" fill="#9c5319">Dækker ${fmt(u.utilizedKwhM2)} af ${fmt(m.totalDHWGross)} kWh/m² brutto VBV-behov (180 L beholder)</text>
         `;
       }).join('');
 
-      const gammaCur = m.freeGainsTotal / Math.max(1, m.spaceHeatGross);
-      const chartX = 670;
-      const chartY = rightY + 35;
-      const chartW = 555;
-      const chartH = Math.max(130, 540 - chartY);
+      const topSectionBottom = Math.max(winSummaryY + 46, rightY + 12);
+
+      // ---- PANEL C (BOTTOM LEFT): SBI 213 UDNYTTELSESKURVE MED 12 MÅNEDSPUNKTER ----
+      const botY = topSectionBottom + 16;
+      const cX = 76;
+      const cY = botY + 58;
+      const cW = 550;
+      const cH = 220;
+      const maxGammaPlot = Math.max(3.5, Math.min(6.0, Math.ceil(Math.max(...m.monthly.map(x => x.mGamma)) * 1.08 * 2) / 2));
 
       let curvePts = '';
-      const aParam = 0.8 + (m.tauHours / 28.0);
-      for (let gVal = 0.05; gVal <= 2.0; gVal += 0.05) {
-        const etaVal = Math.abs(gVal - 1.0) < 1e-4 ? aParam / (aParam + 1) : (1 - Math.pow(gVal, aParam)) / (1 - Math.pow(gVal, aParam + 1));
-        const px = chartX + (gVal / 2.0) * chartW;
-        const py = chartY + chartH - (etaVal * chartH);
+      let limitPts = `M ${(cX + (1.0 / maxGammaPlot) * cW).toFixed(1)} ${cY}`;
+      const aP = m.aParam;
+      for (let gVal = 0.05; gVal <= maxGammaPlot; gVal += 0.05) {
+        const etaVal = Math.abs(gVal - 1.0) < 1e-4 ? aP / (aP + 1) : (1 - Math.pow(gVal, aP)) / (1 - Math.pow(gVal, aP + 1));
+        const px = cX + (gVal / maxGammaPlot) * cW;
+        const py = cY + cH - (etaVal * cH);
         curvePts += (curvePts === '' ? 'M ' : ' L ') + `${px.toFixed(1)} ${py.toFixed(1)}`;
+        if (gVal >= 1.0) {
+          const pyLim = cY + cH - ((1.0 / gVal) * cH);
+          limitPts += ` L ${px.toFixed(1)} ${pyLim.toFixed(1)}`;
+        }
       }
-      const curPx = chartX + Math.min(2.0, gammaCur) / 2.0 * chartW;
-      const curPy = chartY + chartH - (m.eta * chartH);
+
+      const yGridC = [0, 0.25, 0.5, 0.75, 1.0].map(v => {
+        const gy = cY + cH - v * cH;
+        return `
+          <line x1="${cX}" y1="${gy}" x2="${cX + cW}" y2="${gy}" stroke="#e7e3da" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${cX - 8}" y="${gy + 3}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5e5a52">${Math.round(v * 100)}%</text>
+        `;
+      }).join('');
+
+      const xStep = maxGammaPlot > 4 ? 1.0 : 0.5;
+      let xGridC = '';
+      for (let gv = 0; gv <= maxGammaPlot + 0.01; gv += xStep) {
+        const gx = cX + (gv / maxGammaPlot) * cW;
+        xGridC += `
+          <line x1="${gx}" y1="${cY}" x2="${gx}" y2="${cY + cH}" stroke="#ece8df" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${gx}" y="${cY + cH + 15}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5e5a52">${fmt(gv, 1)}</text>
+        `;
+      }
+
+      const placedLbls = [];
+      const monthDots = m.monthly.map((mo, i) => {
+        const gClamped = Math.min(maxGammaPlot, mo.mGamma);
+        const px = cX + (gClamped / maxGammaPlot) * cW;
+        const py = cY + cH - (mo.mEta * cH);
+        const isWinter = mo.mNetSpace > 0.5;
+        const dotColor = isWinter ? t.supplyHeat : (mo.mNetSpace > 0.05 ? t.solarPassiv : '#7a756c');
+        let lblSvg = '';
+        if ([0, 2, 3, 4, 6, 9, 11].includes(i)) {
+          const candidates = [
+            { dx: 0, dy: 14 },
+            { dx: 0, dy: -9 },
+            { dx: 20, dy: 14 },
+            { dx: -20, dy: 14 },
+            { dx: 0, dy: 26 },
+            { dx: 24, dy: 4 }
+          ];
+          for (const cand of candidates) {
+            const lx = px + cand.dx;
+            const ly = py + cand.dy;
+            if (lx < cX + 16 || lx > cX + cW - 16) continue;
+            if (ly < cY - 4 || ly > cY + cH - 4) continue;
+            const collides = placedLbls.some(p => Math.abs(p.x - lx) < 26 && Math.abs(p.y - ly) < 13);
+            if (!collides) {
+              placedLbls.push({ x: lx, y: ly });
+              lblSvg = `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="700" fill="#1f1e1b">${mo.month}</text>`;
+              break;
+            }
+          }
+        }
+        return `
+          <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4.2" fill="${dotColor}" stroke="#ffffff" stroke-width="1.3"/>
+          ${lblSvg}
+        `;
+      }).join('');
+
+      // ---- PANEL D (BOTTOM RIGHT): MÅNEDLIG SOLPRODUKTION & UDNYTTELSE ----
+      const dX = 720;
+      const dY = cY;
+      const dW = 568;
+      const dH = cH;
+      const maxSolarM = Math.max(...m.monthly.map(mo => Math.max(mo.mSolPassiv, mo.mSolfanger, mo.mPV)), 1.5);
+      const dAx = niceAxis(maxSolarM, 4);
+      const dSy = dH / dAx.niceMax;
+      const dColStep = dW / 12;
+
+      const dGrid = dAx.ticks.map(tk => {
+        const gy = dY + dH - tk * dSy;
+        return `
+          <line x1="${dX}" y1="${gy}" x2="${dX + dW}" y2="${gy}" stroke="#e7e3da" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${dX - 8}" y="${gy + 3}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5e5a52">${fmt(tk, dAx.step < 1 ? 1 : 0)}</text>
+        `;
+      }).join('');
+
+      const dBars = m.monthly.map((mo, i) => {
+        const x = dX + i * dColStep + 6;
+        const hSolU = mo.mUtilSol * dSy;
+        const hSolUnu = (mo.mSolPassiv - mo.mUtilSol) * dSy;
+        const hSC = mo.mSolfanger * dSy;
+        const hPV = mo.mPV * dSy;
+        const base = dY + dH;
+        return `
+          <g>
+            <rect x="${x}" y="${base - hSolU}" width="11" height="${hSolU}" fill="${t.solarPassiv}"/>
+            <rect x="${x}" y="${base - hSolU - hSolUnu}" width="11" height="${hSolUnu}" fill="${t.unutilized}"/>
+            ${hSC > 0.3 ? `<rect x="${x + 13}" y="${base - hSC}" width="11" height="${hSC}" rx="1" fill="${t.solarThermal}"/>` : ''}
+            ${hPV > 0.3 ? `<rect x="${x + 26}" y="${base - hPV}" width="11" height="${hPV}" rx="1" fill="${t.solarPV}"/>` : ''}
+            <text x="${x + 18}" y="${base + 15}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.8" font-weight="600" fill="#1f1e1b">${mo.month}</text>
+          </g>
+        `;
+      }).join('');
+
+      const totalH = cY + cH + 62;
 
       return `
-        <svg id="mainPlancheSvg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-          <rect width="${W}" height="${H}" fill="#ffffff"/>
-          <text x="45" y="42" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#c85a3d">A // PASSIVT SOLINDFALD PR. VINDUE FRA BEXML (SAMLET: ${fmt(m.solPassiv)} KWH/M²)</text>
-          <text x="45" y="60" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" fill="#5e5a52">Grå bjælke viser solindfald før skygger. Gul bjælke viser netto solindfald efter horisont, udhæng og sidefinner.</text>
-          ${winBars}
+        <svg id="mainPlancheSvg" viewBox="0 0 ${W} ${totalH}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${totalH}" fill="#ffffff"/>
 
-          <line x1="635" y1="35" x2="635" y2="585" stroke="#e4e1d8" stroke-width="1"/>
+          <!-- PANEL A -->
+          <text x="28" y="34" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#c85a3d">A // PASSIVT SOLINDFALD PR. VINDUE (SAMLET NETTO: ${fmt(m.solPassiv)} KWH/M²)</text>
+          <text x="28" y="52" font-family="Plus Jakarta Sans, sans-serif" font-size="11" fill="#5e5a52">Grå bjælke: før skygger · Gul bjælke: netto efter horisont, udhæng &amp; finner · Skala i kWh/år</text>
+          ${winTicksSvg}
+          ${winRowsSvg}
+          <line x1="${barStartX}" y1="${winAxisY - 4}" x2="${barStartX + barMaxW}" y2="${winAxisY - 4}" stroke="#8c877d" stroke-width="1"/>
+          <rect x="28" y="${winSummaryY}" width="600" height="32" rx="4" fill="#faf8f5" stroke="#dedad0"/>
+          <text x="40" y="${winSummaryY + 20}" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="#1f1e1b">
+            Samlet vindues-solindfald: ${Math.round(totalShadedKwh)} kWh/år (${fmt(m.solPassiv)} kWh/m²) · Nyttiggjort i varme: ${fmt(m.utilizedSolPassiv)} kWh/m² (før skygge ${Math.round(totalUnshadedKwh)} kWh)
+          </text>
 
-          <text x="670" y="42" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#21633b">B // INSTALLEREDE SOLCELLEANLÆG (${fmt(m.solceller)} KWH/M²) &amp; SOLFANGER (${fmt(m.utilizedSolfanger)} KWH/M²)</text>
-          <text x="670" y="60" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" fill="#5e5a52">Hvert anlæg fra BEXML-filen inkl. bygningsrotation (+${d.rotation}°):</text>
-          ${pvUnitCards}
-          ${scUnitCards}
+          <line x1="654" y1="22" x2="654" y2="${topSectionBottom - 10}" stroke="#e4e0d5" stroke-width="1"/>
 
-          <text x="670" y="${chartY - 10}" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#c85a3d">C // UDNYTTELSESGRAD FOR RUMOPVARMNING (η = ${fmt(m.eta * 100, 1)}%) VED VARMEKAPACITET ${d.heat_cap} WH/K·M²</text>
-          <rect x="${chartX}" y="${chartY}" width="${chartW}" height="${chartH}" fill="#faf8f5" stroke="#dedad0"/>
-          <path d="${curvePts}" fill="none" stroke="${t.supplyHeat}" stroke-width="2.5"/>
-          <circle cx="${curPx}" cy="${curPy}" r="5.5" fill="${t.supplyHeat}" stroke="#fff" stroke-width="2"/>
-          <text x="${Math.min(chartX + chartW - 160, curPx + 10)}" y="${Math.max(chartY + 18, curPy - 8)}" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#1f1e1b">γ = ${fmt(gammaCur, 2)} → η = ${fmt(m.eta * 100, 1)}%</text>
+          <!-- PANEL B -->
+          <text x="676" y="34" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#21633b">B // SOLCELLER (${fmt(m.solceller)} KWH/M²) &amp; SOLFANGER (${fmt(m.utilizedSolfanger)} KWH/M²)</text>
+          <text x="676" y="52" font-family="Plus Jakarta Sans, sans-serif" font-size="11" fill="#5e5a52">Alle anlæg fra BEXML-fil inkl. bygningsrotation (+${d.rotation}°) · Inaktive anlæg (0 m²) vises nedtonet</text>
+          ${pvCardsSvg}
+          ${scCardsSvg}
+
+          <line x1="20" y1="${topSectionBottom}" x2="${W - 20}" y2="${topSectionBottom}" stroke="#e4e0d5" stroke-width="1"/>
+
+          <!-- PANEL C -->
+          <text x="28" y="${botY + 14}" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#c85a3d">C // SBI 213 UDNYTTELSESGRAD η(γ) FOR ALLE 12 MÅNEDER (τ = ${m.tauHours} t)</text>
+          <text x="28" y="${botY + 30}" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" fill="#5e5a52">Viser hvorfor sommervarme (højt γ) udluftes, mens vinterens sol/intern varme (lavt γ) udnyttes ~100%</text>
+          <rect x="${cX}" y="${cY}" width="${cW}" height="${cH}" fill="#fcfbf9" stroke="#dedad0"/>
+          ${yGridC}
+          ${xGridC}
+          <path d="${limitPts}" fill="none" stroke="#9e988e" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <path d="${curvePts}" fill="none" stroke="${t.supplyHeat}" stroke-width="2.4"/>
+          ${monthDots}
+          <text x="${cX + cW / 2}" y="${cY + cH + 34}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">Varmetilskudsforhold γ = Q_gratisvarme / Q_varmetab</text>
+          <text x="${cX + cW - 10}" y="${cY + 18}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9" fill="#7a756c">Stiplet: teoretisk grænse 1/γ</text>
+
+          <!-- PANEL D -->
+          <text x="676" y="${botY + 14}" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#21633b">D // MÅNEDLIG SOLPRODUKTION &amp; UDNYTTELSE (KWH/M² PR. MÅNED)</text>
+          <text x="676" y="${botY + 30}" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" fill="#5e5a52">Gul: Passiv sol nyttiggjort · Grå: Udluftet · Orange: Solfanger VBV · Grøn: Solceller el</text>
+          <rect x="${dX}" y="${dY}" width="${dW}" height="${dH}" fill="#fcfbf9" stroke="#dedad0"/>
+          ${dGrid}
+          <line x1="${dX}" y1="${dY + dH}" x2="${dX + dW}" y2="${dY + dH}" stroke="#1f1e1b" stroke-width="1.2"/>
+          ${dBars}
+          <text x="${dX - 36}" y="${dY + dH / 2}" transform="rotate(-90 ${dX - 36} ${dY + dH / 2})" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">kWh/m² pr. md</text>
         </svg>
       `;
     }
 
-    // ----------------- TAB 03: 12-MÅNEDERS BALANCE -----------------
+    // ----------------- TAB 03: MÅNEDLIG VARME- & EL-BALANCE (12 MDR) -----------------
     function buildTab03MonthlySVG() {
       const m = MODEL;
       const t = m.theme;
-      const W = 1280;
-      const H = 580;
+      const showUnutil = m.showUnutilized;
+      const W = 1320;
+      const H = 768;
 
-      const startX = 90;
-      const chartW = 1120;
-      const baseY = 480;
-      const maxVal = Math.max(...m.monthly.map(x => Math.max(x.mLoss, x.mUtil + x.mUnutil + x.mPV)), 14);
-      const scaleY = 360 / maxVal;
-      const colStep = chartW / 12;
+      // ---- 1. TOP CHART: MÅNEDLIG VARMEBALANCE (RUM + VBV) ----
+      const c1X = 76;
+      const c1Y = 66;
+      const c1W = 1206;
+      const c1H = 258;
+      const c1Base = c1Y + c1H;
 
-      const cols = m.monthly.map((mo, i) => {
-        const x = startX + i * colStep + 14;
-        const hLoss = mo.mLoss * scaleY;
-        const hUtil = mo.mUtil * scaleY;
-        const hUnutil = mo.mUnutil * scaleY;
-        const hPV = mo.mPV * scaleY;
+      const maxHeatM = Math.max(
+        ...m.monthly.map(mo => Math.max(
+          mo.mTotalHeatDemand,
+          mo.mUtilGains + mo.mSolfanger + mo.mSupplyHeat + (showUnutil ? mo.mUnutilGains : 0)
+        )),
+        6
+      );
+      const hAx = niceAxis(maxHeatM, 5);
+      const hScale = c1H / hAx.niceMax;
+      const colStep = c1W / 12;
+
+      const hGrid = hAx.ticks.map(tk => {
+        const gy = c1Base - tk * hScale;
+        return `
+          <line x1="${c1X}" y1="${gy}" x2="${c1X + c1W}" y2="${gy}" stroke="#e7e3da" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${c1X - 10}" y="${gy + 3}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${fmt(tk, hAx.step < 1 ? 1 : 0)}</text>
+        `;
+      }).join('');
+
+      const hBars = m.monthly.map((mo, i) => {
+        const x = c1X + i * colStep + 18;
+        const bw = 26;
+        const hSpace = mo.mSpaceLoss * hScale;
+        const hDHW = mo.mDHWGross * hScale;
+        const hTotalDem = hSpace + hDHW;
+
+        const hUtil = mo.mUtilGains * hScale;
+        const hSC = mo.mSolfanger * hScale;
+        const hSup = mo.mSupplyHeat * hScale;
+        const hUnutil = showUnutil ? (mo.mUnutilGains * hScale) : 0;
+        const hRightTop = hUtil + hSC + hSup + hUnutil;
 
         return `
           <g>
-            <rect x="${x}" y="${baseY - hLoss}" width="24" height="${hLoss}" rx="2" fill="${t.lossTrans}"/>
-            <text x="${x + 12}" y="${baseY - hLoss - 6}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="${t.lossTrans}">${fmt(mo.mLoss, 1)}</text>
+            <!-- Venstre søjle: Brutto behov (Rumtab + VBV) -->
+            <rect x="${x}" y="${c1Base - hSpace}" width="${bw}" height="${hSpace}" fill="${t.lossTrans}"/>
+            <rect x="${x}" y="${c1Base - hTotalDem}" width="${bw}" height="${hDHW}" rx="1.5" fill="${t.lossDHW}"/>
+            <line x1="${x}" y1="${c1Base - hSpace}" x2="${x + bw}" y2="${c1Base - hSpace}" stroke="#ffffff" stroke-width="1"/>
+            <text x="${x + bw / 2}" y="${c1Base - hTotalDem - 5}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.8" font-weight="700" fill="#1f1e1b">${fmt(mo.mTotalHeatDemand, 1)}</text>
 
-            <rect x="${x + 28}" y="${baseY - hUtil}" width="24" height="${hUtil}" rx="2" fill="${t.solarPassiv}"/>
-            <rect x="${x + 28}" y="${baseY - hUtil - hUnutil}" width="24" height="${hUnutil}" rx="2" fill="${t.unutilized}"/>
-            <text x="${x + 40}" y="${baseY - hUtil - hUnutil - 6}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="#5e5a52">${fmt(mo.mUtil + mo.mUnutil, 1)}</text>
+            <!-- Højre søjle: Dækning (Gratisvarme + Solfanger + Tilført varme) -->
+            <rect x="${x + bw + 5}" y="${c1Base - hUtil}" width="${bw}" height="${hUtil}" fill="${t.solarPassiv}"/>
+            ${hSC > 0.3 ? `<rect x="${x + bw + 5}" y="${c1Base - hUtil - hSC}" width="${bw}" height="${hSC}" fill="${t.solarThermal}"/>` : ''}
+            ${hSup > 0.3 ? `<rect x="${x + bw + 5}" y="${c1Base - hUtil - hSC - hSup}" width="${bw}" height="${hSup}" rx="1.5" fill="${t.supplyHeat}"/>` : ''}
+            ${hUnutil > 0.5 ? `<rect x="${x + bw + 5}" y="${c1Base - hRightTop}" width="${bw}" height="${hUnutil}" rx="1.5" fill="${t.unutilized}" fill-opacity="0.72" stroke="#9e988e" stroke-width="0.8" stroke-dasharray="2 2"/>` : ''}
+            ${hSup > 15 ? `<text x="${x + bw + 5 + bw / 2}" y="${c1Base - hUtil - hSC - hSup / 2 + 3}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.2" font-weight="700" fill="#ffffff">${fmt(mo.mSupplyHeat, 1)}</text>` : ''}
 
-            ${hPV > 0.2 ? `
-              <rect x="${x + 56}" y="${baseY - hPV}" width="14" height="${hPV}" rx="2" fill="${t.solarPV}"/>
+            <text x="${x + bw + 2}" y="${c1Base + 16}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="700" fill="#1f1e1b">${mo.month}</text>
+            <text x="${x + bw + 2}" y="${c1Base + 29}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#7a756c">${fmt(mo.tOut, 1)}°C</text>
+            <text x="${x + bw + 2}" y="${c1Base + 41}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="600" fill="${t.supplyHeat}">Tilf: ${fmt(mo.mSupplyHeat, 1)}</text>
+          </g>
+        `;
+      }).join('');
+
+      // ---- 2. BOTTOM CHART: MÅNEDLIG EL-BALANCE (BYGNINGSDRIFT VS. SOLCELLER) ----
+      const c2X = 76;
+      const c2Y = 445;
+      const c2W = 1206;
+      const c2H = 225;
+      const c2Base = c2Y + c2H;
+
+      const maxElM = Math.max(...m.monthly.map(mo => Math.max(mo.mTotalEl, mo.mPV)), 0.8);
+      const elAx = niceAxis(maxElM * 1.08, 4);
+      const elScale = c2H / elAx.niceMax;
+
+      const elGrid = elAx.ticks.map(tk => {
+        const gy = c2Base - tk * elScale;
+        return `
+          <line x1="${c2X}" y1="${gy}" x2="${c2X + c2W}" y2="${gy}" stroke="#e7e3da" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${c2X - 10}" y="${gy + 3}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">${fmt(tk, elAx.step < 0.5 ? 2 : 1)}</text>
+        `;
+      }).join('');
+
+      const elBars = m.monthly.map((mo, i) => {
+        const x = c2X + i * colStep + 14;
+        const bw = 20;
+        const hHpEl = mo.mHpEl * elScale;
+        const hAuxEl = mo.mAuxEl * elScale;
+        const hTotEl = hHpEl + hAuxEl;
+
+        const hSelf = mo.mPVSelf * elScale;
+        const hBuy = mo.mGridBuy * elScale;
+        const hExp = mo.mPVExport * elScale;
+
+        return `
+          <g>
+            <!-- Søjle 1: Elbehov (VP + Pumper/Vent) -->
+            <rect x="${x}" y="${c2Base - hHpEl}" width="${bw}" height="${hHpEl}" fill="${t.supplyEl}"/>
+            <rect x="${x}" y="${c2Base - hTotEl}" width="${bw}" height="${hAuxEl}" rx="1.5" fill="#6b8fa3"/>
+            ${mo.mTotalEl >= 0.05 ? `<text x="${x + bw / 2}" y="${c2Base - hTotEl - 5}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.2" font-weight="700" fill="#3e6278">${fmt(mo.mTotalEl, 2)}</text>` : ''}
+
+            <!-- Søjle 2: Dækning (PV egetforbrug + Køb fra elnet) -->
+            <rect x="${x + bw + 3}" y="${c2Base - hSelf}" width="${bw}" height="${hSelf}" fill="${t.solarPV}"/>
+            <rect x="${x + bw + 3}" y="${c2Base - hSelf - hBuy}" width="${bw}" height="${hBuy}" rx="1.5" fill="#b4bdc4"/>
+
+            <!-- Søjle 3: Eksporteret solcellestrøm -->
+            ${hExp > 0.4 ? `
+              <rect x="${x + (bw + 3) * 2}" y="${c2Base - hExp}" width="16" height="${hExp}" rx="1.5" fill="${t.pvExport}"/>
+              <text x="${x + (bw + 3) * 2 + 8}" y="${c2Base - hExp - 5}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.2" font-weight="700" fill="#21633b">+${fmt(mo.mPVExport, 2)}</text>
             ` : ''}
 
-            <text x="${x + 30}" y="${baseY + 22}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#1f1e1b">${mo.month}</text>
-            <text x="${x + 30}" y="${baseY + 38}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">Fors.: ${fmt(mo.mNetSupply, 1)}</text>
+            <text x="${x + 28}" y="${c2Base + 16}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="700" fill="#1f1e1b">${mo.month}</text>
+            <text x="${x + 28}" y="${c2Base + 29}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.2" fill="${mo.mPVExport > 0.02 ? '#21633b' : '#5e5a52'}">${mo.mPVExport > 0.02 ? `Eks: ${fmt(mo.mPVExport, 2)}` : `Køb: ${fmt(mo.mGridBuy, 2)}`}</text>
           </g>
         `;
       }).join('');
@@ -2886,9 +3420,47 @@
       return `
         <svg id="mainPlancheSvg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
           <rect width="${W}" height="${H}" fill="#ffffff"/>
-          <text x="90" y="45" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#c85a3d">MÅNEDLIG ENERGIBALANCE (KWH/M²) // VENSTRE SØJLE: BRUTTO VARMETAB · MIDT: SOL &amp; INTERN VARME · HØJRE: SOLCELLER</text>
-          <line x1="70" y1="${baseY}" x2="1220" y2="${baseY}" stroke="#1f1e1b" stroke-width="1.5"/>
-          ${cols}
+
+          <!-- CHART 1: VARMEBALANCE -->
+          <text x="24" y="28" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#c85a3d">A // MÅNEDLIG VARMEBALANCE — RUMOPVARMNING &amp; VARMT BRUGSVAND (KWH_TH/M² PR. MÅNED)</text>
+          <text x="24" y="45" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" fill="#5e5a52">Venstre søjle: Brutto varmetab (Rum + VBV) · Højre søjle: Dækning (Nyttiggjort gratisvarme + Solfanger + Tilført varme). Sammenhængende højde = energibalance.</text>
+
+          <!-- Legend Chart 1 -->
+          <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f1e1b">
+            <rect x="650" y="18" width="12" height="9" fill="${t.lossTrans}"/><text x="666" y="26">Rumtab</text>
+            <rect x="720" y="18" width="12" height="9" fill="${t.lossDHW}"/><text x="736" y="26">VBV inkl. tab</text>
+            <rect x="820" y="18" width="12" height="9" fill="${t.solarPassiv}"/><text x="836" y="26">Nyttiggjort gratisvarme</text>
+            <rect x="975" y="18" width="12" height="9" fill="${t.solarThermal}"/><text x="991" y="26">Solfanger</text>
+            <rect x="1062" y="18" width="12" height="9" fill="${t.supplyHeat}"/><text x="1078" y="26">Tilført varme</text>
+            ${showUnutil ? `<rect x="1165" y="18" width="12" height="9" fill="${t.unutilized}" stroke="#9e988e" stroke-dasharray="2 1"/><text x="1181" y="26">Udluftet</text>` : ''}
+          </g>
+
+          <rect x="${c1X}" y="${c1Y}" width="${c1W}" height="${c1H}" fill="#fcfbf9" stroke="#e4e0d5"/>
+          ${hGrid}
+          <line x1="${c1X}" y1="${c1Base}" x2="${c1X + c1W}" y2="${c1Base}" stroke="#1f1e1b" stroke-width="1.3"/>
+          <text x="${c1X - 42}" y="${c1Y + c1H / 2}" transform="rotate(-90 ${c1X - 42} ${c1Y + c1H / 2})" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">kWh/m² pr. md</text>
+          ${hBars}
+
+          <line x1="24" y1="386" x2="${W - 24}" y2="386" stroke="#dedad0" stroke-width="1"/>
+
+          <!-- CHART 2: ELBALANCE -->
+          <text x="24" y="410" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#3e6278">B // MÅNEDLIG EL-BALANCE — BYGNINGSDRIFT VS. SOLCELLER (KWH_EL/M² PR. MÅNED)</text>
+          <text x="24" y="427" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" fill="#5e5a52">Søjle 1: Bygningens elbehov (${fmt(m.totalBuildingEl)} kWh/m²) · Søjle 2: Dækning (${fmt(m.pvSelfUsed)} PV egetforbrug + ${fmt(m.purchasedEl)} køb) · Søjle 3: PV eksport (${fmt(m.pvExported)})</text>
+
+          <!-- Legend Chart 2 -->
+          <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f1e1b">
+            <rect x="770" y="400" width="12" height="9" fill="${t.supplyEl}"/><text x="786" y="408">VP-el</text>
+            <rect x="836" y="400" width="12" height="9" fill="#6b8fa3"/><text x="852" y="408">Pumper/Vent</text>
+            <rect x="936" y="400" width="12" height="9" fill="${t.solarPV}"/><text x="952" y="408">PV egetforbrug</text>
+            <rect x="1046" y="400" width="12" height="9" fill="#b4bdc4"/><text x="1062" y="408">Køb fra net</text>
+            <rect x="1142" y="400" width="12" height="9" fill="${t.pvExport}"/><text x="1158" y="408">PV eksport til net</text>
+          </g>
+
+          <rect x="${c2X}" y="${c2Y}" width="${c2W}" height="${c2H}" fill="#fcfbf9" stroke="#e4e0d5"/>
+          ${elGrid}
+          <line x1="${c2X}" y1="${c2Base}" x2="${c2X + c2W}" y2="${c2Base}" stroke="#1f1e1b" stroke-width="1.3"/>
+          <text x="${c2X - 42}" y="${c2Y + c2H / 2}" transform="rotate(-90 ${c2X - 42} ${c2Y + c2H / 2})" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5e5a52">kWh_el/m² pr. md</text>
+          ${elBars}
         </svg>
       `;
     }
